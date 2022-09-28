@@ -1,6 +1,7 @@
 import Vector from '../Vector';
 
 abstract class Entity {
+    protected _velocity: Vector = new Vector();
     protected _position: Vector;
     protected _colour: string;
     protected _radius: number;
@@ -22,8 +23,16 @@ abstract class Entity {
         return this._position.x;
     }
 
+    set x(newX: number) {
+        this._position.x = newX;
+    }
+
     get y() {
         return this._position.y;
+    }
+
+    set y(newY: number) {
+        this._position.y = newY;
     }
 
     get position() {
@@ -41,8 +50,24 @@ abstract class Entity {
     isCollidingWith(entity: Entity) : boolean
     {
         const minAllowedDist = entity.radius + this._radius;
-        return this._position.distBetween(entity.position) <= minAllowedDist;
+        return this._position.distanceTo(entity.position) <= minAllowedDist;
     }
+
+    setVelocity(velocity: Vector) : void
+    {
+        this._velocity = velocity;
+    }
+
+    _move(deltaTime: number) : void
+    {
+        this._position.addSelf(
+            this._velocity
+                .mult(this._speed)
+                .mult(deltaTime),
+        );
+    }
+
+    abstract nextFrame(deltaTime: number) : void
 }
 
 export default Entity;

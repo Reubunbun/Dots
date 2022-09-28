@@ -24,6 +24,18 @@ class Vector {
         return new Vector(this.x + vector.x, this.y + vector.y);
     }
 
+    subtractSelf(vector: Vector) : Vector
+    {
+        this.x -= vector.x;
+        this.y -= vector.y;
+        return this;
+    }
+
+    subtract(vector: Vector) : Vector
+    {
+        return new Vector(this.x - vector.x, this.y - vector.y);
+    }
+
     multSelf(scalar: number) : Vector
     {
         this.x *= scalar;
@@ -36,7 +48,7 @@ class Vector {
         return new Vector(this.x * scalar, this.y * scalar);
     }
 
-    distBetween(vector: Vector) : number
+    distanceTo(vector: Vector) : number
     {
         return Math.sqrt(
             Math.pow(this.x - vector.x, 2) + Math.pow(this.y - vector.y, 2),

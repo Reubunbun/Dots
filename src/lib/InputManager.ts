@@ -16,9 +16,7 @@ class InputManager {
     }
 
     private constructor() {
-        console.log('in gonsructor');
         document.addEventListener('keydown', e => {
-            console.log(e.key);
             switch (e.key) {
                 case 'ArrowUp':
                     return this._pressedKeys.add(InputManager.UP);

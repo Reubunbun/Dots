@@ -1,29 +1,40 @@
+import { type GameEndEventParams, KEY_GAME_END } from '../types/globals';
 import Vector from './Vector';
 import Player from './entities/Player';
-import InputManager from './InputManager';
+import Obstacle from './entities/Obstacle';
 
 class Game {
-    private static readonly REF_WIDTH = 1920; //1920
-    private static readonly REF_HEIGHT = 903; //903
+    public static readonly REF_WIDTH = 1920;
+    public static readonly REF_HEIGHT = 903;
 
+    private static readonly MIN_OBSTACLE_SPAWN_DIST = 50;
+
+    private _timeGameStart: number = Date.now();
+    private _collectablesCollected: number = 0;
+    private _allObstacles: Set<Obstacle> = new Set();
+    private _player: Player;
+    private _animationId: number;
+    private _lastFrameTime: number;
     private _canvas: HTMLCanvasElement;
     private _context: CanvasRenderingContext2D;
-    private _player: Player;
-    private _inputManager: InputManager;
 
-    constructor(
-        canvas: HTMLCanvasElement,
-    )
+    constructor(canvas: HTMLCanvasElement)
     {
         this._canvas = canvas;
         this._context = canvas.getContext('2d');
+
         this._player = new Player(
             new Vector(Game.REF_WIDTH / 2, Game.REF_HEIGHT / 2),
-            '#ff1515',
+            '#0011fd',
             25,
             123,
         );
-        this._inputManager = InputManager.Instance;
+
+        const firstObstacle = new Obstacle(
+            this._getRandomPositionForObstacle(),
+            100,
+        );
+        this._allObstacles.add(firstObstacle);
     }
 
     resize(screenWidth: number, screenHeight: number) : void
@@ -50,68 +61,91 @@ class Game {
         } else {
             this._context.imageSmoothingEnabled = false;
         }
-
-        // const scale = Math.min(
-        //     this._canvas.width / Game.REF_WIDTH,
-        //     this._canvas.height / Game.REF_HEIGHT,
-        // );
-        // this._context.setTransform(
-        //     scale,
-        //     0,
-        //     0,
-        //     scale,
-        //     (this._canvas.width - Game.REF_WIDTH * scale) / 2,
-        //     (this._canvas.height - Game.REF_HEIGHT * scale) / 2,
-        // );
-    }
-
-    getViewportWidth() : number
-    {
-        const scale = Math.min(
-            this._canvas.width / Game.REF_WIDTH,
-            this._canvas.height / Game.REF_HEIGHT,
-        );
-
-        return (1 - scale) * Game.REF_WIDTH;
-    }
-
-    private _nextFrame() : void
-    {
-        this._context.fillStyle = '#663399';
-        this._context.fillRect(0, 0, Game.REF_WIDTH, Game.REF_HEIGHT);
-
-        this._context.fillStyle = this._player.colour;
-        this._context.beginPath();
-        this._context.arc(
-            this._player.x,
-            this._player.y,
-            this._player.radius,
-            0,
-            2 * Math.PI,
-        );
-        this._context.fill();
-
-        for (const input of this._inputManager.getAllPressed()) {
-            switch (input) {
-                case 'UP':
-                    this._player.move(new Vector(0, -1));
-                    continue;
-                case 'DOWN':
-                    this._player.move(new Vector(0, 1));
-                    continue;
-                case 'LEFT':
-                    this._player.move(new Vector(-1, 0));
-                    continue;
-                case 'RIGHT':
-                    this._player.move(new Vector(1, 0));
-                    continue;
-            }
-        }
     }
 
     start() : void
     {
-        setInterval(this._nextFrame.bind(this), 1 / 60);
+        this._animationId = requestAnimationFrame(this._nextFrame.bind(this));
+    }
+
+    stop() : void
+    {
+        cancelAnimationFrame(this._animationId);
+        this._context.fillStyle = 'black';
+        this._context.fillRect(0, 0, Game.REF_WIDTH, Game.REF_HEIGHT);
+        console.log('distpacting event');
+        document.dispatchEvent(new CustomEvent<GameEndEventParams>(
+            KEY_GAME_END,
+            {
+                detail: { score: 1, time: 2, collected: 3 },
+                bubbles: true,
+            }
+        ));
+    }
+
+    private _nextFrame(frameTime: number) : void
+    {
+        if (this._lastFrameTime === undefined) {
+            this._lastFrameTime = frameTime;
+            requestAnimationFrame(this._nextFrame.bind(this));
+            return;
+        }
+
+        const deltaTime = (frameTime - this._lastFrameTime) / 1000;
+        this._lastFrameTime = frameTime;
+
+        this._context.fillStyle = 'grey';
+        this._context.fillRect(0, 0, Game.REF_WIDTH, Game.REF_HEIGHT);
+
+        for (const entity of [this._player, ...this._allObstacles]) {
+            entity.nextFrame(deltaTime);
+
+            if (entity instanceof Obstacle) {
+                if (entity.isCollidingWith(this._player)) {
+                    return this.stop();
+                }
+            }
+
+            this._context.fillStyle = entity.colour;
+            this._context.beginPath();
+            this._context.arc(
+                entity.x,
+                entity.y,
+                entity.radius,
+                0,
+                2 * Math.PI,
+            );
+            this._context.fill();
+        }
+
+        this._animationId = requestAnimationFrame(this._nextFrame.bind(this));
+    }
+
+    private _getRandomPositionForObstacle() : Vector
+    {
+        const randomPosition = new Vector(
+            Math.floor(
+                Math.random() *
+                    (Game.REF_WIDTH - Obstacle.RADIUS + 1) +
+                    Obstacle.RADIUS,
+            ),
+            Math.floor(
+                Math.random() *
+                    (Game.REF_HEIGHT - Obstacle.RADIUS + 1) +
+                    Obstacle.RADIUS,
+            ),
+        );
+
+        const distToPlayer = randomPosition.distanceTo(this._player.position);
+        if (distToPlayer < Game.MIN_OBSTACLE_SPAWN_DIST) {
+            const dirVector = randomPosition
+                .subtract(this._player.position)
+                .mult(1/distToPlayer);
+            const distToMove = Game.MIN_OBSTACLE_SPAWN_DIST - distToPlayer;
+            randomPosition.addSelf(dirVector.mult(distToMove));
+        }
+
+        return randomPosition;
     }
 }
 

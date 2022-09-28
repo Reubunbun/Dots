@@ -1,3 +1,10 @@
+import { type GameEndEventParams, KEY_GAME_END } from './types/globals';
+declare global {
+    interface DocumentEventMap {
+        [KEY_GAME_END]: CustomEvent<GameEndEventParams>;
+    }
+}
+
 import './styles.css';
 import Game from './lib/Game';
 
@@ -17,4 +24,9 @@ window.addEventListener(
     callbackResize,
 );
 
+document.addEventListener(KEY_GAME_END, e => {
+    console.log('GAME ENDED!', e.detail);
+});
+
 game.start();
+console.log('after game start');
