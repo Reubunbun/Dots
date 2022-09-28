@@ -1,0 +1,17 @@
+{
+    "compilerOptions": {
+        "allowSyntheticDefaultImports": true,
+        "noImplicitAny": true,
+        "module": "es6",
+        "target": "es5",
+        "downlevelIteration": true,
+        "allowJs": true,
+        "preserveConstEnums": true,
+        "sourceMap": true,
+        "declaration": true,
+        "moduleResolution": "node",
+        "outDir": "./dist",
+        "rootDir": "."
+    },
+    "files": ["src/index.ts"]
+}

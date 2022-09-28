@@ -1,0 +1,43 @@
+html {
+    background-color: black;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+}
+
+
+body {
+    width: 100vw;
+    height: 100vh;
+}
+
+.container-main {
+    display: grid;
+    height: 100%;
+    grid-template-columns: 100vw;
+    grid-template-rows: 7.5% auto;
+}
+
+.container-UI {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    gap: 1rem;
+}
+.container-UI button {
+    height: 50%;
+    width: 8rem;
+    cursor: pointer;
+}
+
+#game-canvas {
+    width: 100%;
+    height: 100%;
+    align-self: center;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: -webkit-crisp-edges;
+    image-rendering: crisp-edges;
+}
