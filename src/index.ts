@@ -1,7 +1,7 @@
-import { type GameEndEventParams, KEY_GAME_END } from './types/globals';
+import { type GameEndEventParams, EVENT_GAME_END } from './types/globals';
 declare global {
     interface DocumentEventMap {
-        [KEY_GAME_END]: CustomEvent<GameEndEventParams>;
+        [EVENT_GAME_END]: CustomEvent<GameEndEventParams>;
     }
 }
 
@@ -10,23 +10,28 @@ import Game from './lib/Game';
 
 const canvas = document.getElementById('game-canvas') as HTMLCanvasElement;
 const UIBar = document.getElementById('UI-bar') as HTMLDivElement;
-const game = new Game(canvas);
+const btnRestart = document.getElementById('btn-restart') as HTMLButtonElement;
+let game = new Game(canvas);
+
+btnRestart.addEventListener('click', () => {
+    game.stop();
+    game = new Game(canvas);
+    game.start();
+});
+
+document.addEventListener(EVENT_GAME_END, e => {
+    console.log('GAME ENDED!', e.detail);
+});
 
 const callbackResize = () => {
     const UIHeight = UIBar.getBoundingClientRect().height;
     const heightToUse = (window.innerHeight - UIHeight) * 0.9
     game.resize(window.innerWidth, heightToUse);
-}
-
+};
 callbackResize();
 window.addEventListener(
     'resize',
     callbackResize,
 );
 
-document.addEventListener(KEY_GAME_END, e => {
-    console.log('GAME ENDED!', e.detail);
-});
-
 game.start();
-console.log('after game start');

@@ -1,4 +1,4 @@
-export const KEY_GAME_END = 'gameEnd';
+export const EVENT_GAME_END = 'gameEnd';
 
 export interface GameEndEventParams {
     time: number;

@@ -1,15 +1,16 @@
 import Vector from '../Vector';
+import Colour from '../Colour';
 
 abstract class Entity {
     protected _velocity: Vector = new Vector();
     protected _position: Vector;
-    protected _colour: string;
+    protected _colour: Colour;
     protected _radius: number;
     protected _speed: number;
 
     constructor(
         position: Vector,
-        colour: string,
+        colour: Colour,
         radius: number,
         speed: number,
     ) {
@@ -40,7 +41,7 @@ abstract class Entity {
     }
 
     get colour() {
-        return this._colour;
+        return this._colour.toString();
     }
 
     get radius() {

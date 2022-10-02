@@ -1,17 +1,21 @@
-import { type GameEndEventParams, KEY_GAME_END } from '../types/globals';
+import { type GameEndEventParams, EVENT_GAME_END } from '../types/globals';
 import Vector from './Vector';
 import Player from './entities/Player';
 import Obstacle from './entities/Obstacle';
+import Collectable from './entities/Collectable';
 
 class Game {
     public static readonly REF_WIDTH = 1920;
     public static readonly REF_HEIGHT = 903;
 
-    private static readonly MIN_OBSTACLE_SPAWN_DIST = 50;
+    private static readonly MIN_SPAWN_DIST_FROM_PLAYER = 200;
 
+    private _ended: boolean = false;
     private _timeGameStart: number = Date.now();
     private _collectablesCollected: number = 0;
     private _allObstacles: Set<Obstacle> = new Set();
+    private _times: Array<number> = [];
+    private _collectable: Collectable;
     private _player: Player;
     private _animationId: number;
     private _lastFrameTime: number;
@@ -25,16 +29,16 @@ class Game {
 
         this._player = new Player(
             new Vector(Game.REF_WIDTH / 2, Game.REF_HEIGHT / 2),
-            '#0011fd',
-            25,
-            123,
         );
 
         const firstObstacle = new Obstacle(
-            this._getRandomPositionForObstacle(),
-            100,
+            this._getRandomPositionToSpawn(Obstacle.RADIUS),
         );
         this._allObstacles.add(firstObstacle);
+
+        this._collectable = new Collectable(
+            this._getRandomPositionToSpawn(Collectable.RADIUS),
+        );
     }
 
     resize(screenWidth: number, screenHeight: number) : void
@@ -70,14 +74,23 @@ class Game {
 
     stop() : void
     {
+        if (this._ended) {
+            return;
+        }
+
         cancelAnimationFrame(this._animationId);
+        this._ended = true;
+
         this._context.fillStyle = 'black';
-        this._context.fillRect(0, 0, Game.REF_WIDTH, Game.REF_HEIGHT);
-        console.log('distpacting event');
+        this._context.fillRect(-100, -100, Game.REF_WIDTH + 200, Game.REF_HEIGHT + 200);
         document.dispatchEvent(new CustomEvent<GameEndEventParams>(
-            KEY_GAME_END,
+            EVENT_GAME_END,
             {
-                detail: { score: 1, time: 2, collected: 3 },
+                detail: {
+                    score: 1,
+                    time: Date.now() - this._timeGameStart,
+                    collected: this._collectablesCollected,
+                },
                 bubbles: true,
             }
         ));
@@ -91,18 +104,62 @@ class Game {
             return;
         }
 
+        while (this._times.length > 0 && this._times[0] <= frameTime - 1000) {
+            this._times.shift();
+        }
+        this._times.push(frameTime);
+        const fps = this._times.length;
+
+
         const deltaTime = (frameTime - this._lastFrameTime) / 1000;
         this._lastFrameTime = frameTime;
 
-        this._context.fillStyle = 'grey';
-        this._context.fillRect(0, 0, Game.REF_WIDTH, Game.REF_HEIGHT);
+        // Drawings sometimes bleed over the edge of the game area, so paint
+        // over the areas around with black first
+        this._context.fillStyle = 'black';
+        this._context.fillRect(-100, -100, Game.REF_WIDTH + 200, Game.REF_HEIGHT + 200);
 
-        for (const entity of [this._player, ...this._allObstacles]) {
+        this._context.fillRect(0, 0, Game.REF_WIDTH, Game.REF_HEIGHT);
+        this._context.strokeStyle = 'purple';
+        this._context.strokeRect(0, 1, Game.REF_WIDTH, Game.REF_HEIGHT -2);
+        this._context.strokeStyle = 'none';
+
+        this._context.fillStyle = 'white';
+        this._context.font = '48px serif';
+        this._context.fillText(`${fps}`, 10, 50);
+
+        const allEntities = [
+            this._player,
+            this._collectable,
+            ...this._allObstacles,
+        ];
+
+        for (const entity of allEntities) {
             entity.nextFrame(deltaTime);
 
             if (entity instanceof Obstacle) {
                 if (entity.isCollidingWith(this._player)) {
-                    return this.stop();
+                    if (this._player.inPowerup()) {
+                        this._allObstacles.delete(entity);
+                    } else {
+                        return this.stop();
+                    }
+                }
+            }
+
+            if (entity instanceof Collectable) {
+                if (entity.isCollidingWith(this._player)) {
+                    this._collectablesCollected++;
+                    this._player.addCharge();
+
+                    this._collectable.resetPosition(this._getRandomPositionToSpawn(
+                        Collectable.RADIUS,
+                    ));
+                    this._allObstacles.add(
+                        new Obstacle(
+                            this._getRandomPositionToSpawn(Obstacle.RADIUS),
+                        ),
+                    );
                 }
             }
 
@@ -121,27 +178,27 @@ class Game {
         this._animationId = requestAnimationFrame(this._nextFrame.bind(this));
     }
 
-    private _getRandomPositionForObstacle() : Vector
+    private _getRandomPositionToSpawn(entityRadius: number) : Vector
     {
         const randomPosition = new Vector(
             Math.floor(
                 Math.random() *
-                    (Game.REF_WIDTH - Obstacle.RADIUS + 1) +
-                    Obstacle.RADIUS,
+                    (Game.REF_WIDTH - (2 * entityRadius) + 1) +
+                    entityRadius,
             ),
             Math.floor(
                 Math.random() *
-                    (Game.REF_HEIGHT - Obstacle.RADIUS + 1) +
-                    Obstacle.RADIUS,
+                    (Game.REF_HEIGHT - (2 * entityRadius) + 1) +
+                    entityRadius,
             ),
         );
 
         const distToPlayer = randomPosition.distanceTo(this._player.position);
-        if (distToPlayer < Game.MIN_OBSTACLE_SPAWN_DIST) {
+        if (distToPlayer < Game.MIN_SPAWN_DIST_FROM_PLAYER) {
             const dirVector = randomPosition
                 .subtract(this._player.position)
                 .mult(1/distToPlayer);
-            const distToMove = Game.MIN_OBSTACLE_SPAWN_DIST - distToPlayer;
+            const distToMove = Game.MIN_SPAWN_DIST_FROM_PLAYER - distToPlayer;
             randomPosition.addSelf(dirVector.mult(distToMove));
         }
 

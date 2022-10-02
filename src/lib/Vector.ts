@@ -54,6 +54,25 @@ class Vector {
             Math.pow(this.x - vector.x, 2) + Math.pow(this.y - vector.y, 2),
         );
     }
+
+    clampSelf(
+        minX: number,
+        maxX: number,
+        minY?: number,
+        maxY?: number,
+    ) : Vector
+    {
+        this.x = Math.min(
+            Math.max(this.x, minX),
+            maxX,
+        );
+        this.y = Math.min(
+            Math.max(this.y, (minY || minX)),
+            (maxY || maxX),
+        );
+
+        return this;
+    }
 }
 
 export default Vector;
