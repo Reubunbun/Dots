@@ -49,9 +49,16 @@ button:hover {
     gap: 1rem;
 }
 
+.container-UI .score-text {
+    font-size: 40px;
+    font-weight: 600;
+    text-align: center;
+    transform: translateX(-25%);
+    margin: 0;
+}
+
 .container-UI .container-btns {
     height: 50%;
-    width: 50%;
 }
 .container-UI .container-btns button {
     height: 100%;

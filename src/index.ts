@@ -1,13 +1,16 @@
 import {
     type GameEndEventParams,
     type PowerChangeEventParams,
+    type ScoreChangeEventParams,
     EVENT_GAME_END,
     EVENT_POWER_CHANGE,
+    EVENT_SCORE_CHANGE,
 } from './types/globals';
 declare global {
     interface DocumentEventMap {
         [EVENT_GAME_END]: CustomEvent<GameEndEventParams>;
         [EVENT_POWER_CHANGE]: CustomEvent<PowerChangeEventParams>;
+        [EVENT_SCORE_CHANGE]: CustomEvent<ScoreChangeEventParams>;
     }
 }
 
@@ -17,6 +20,7 @@ import Game from './lib/Game';
 const canvas = document.getElementById('game-canvas') as HTMLCanvasElement;
 const UIBar = document.getElementById('UI-bar') as HTMLDivElement;
 const powerMeter = document.getElementById('power-meter') as HTMLSpanElement;
+const currentScore = document.getElementById('current-score') as HTMLSpanElement;
 const modalBackdrop = document.getElementById('modal-backdrop') as HTMLDivElement;
 const modalEditStats = document.getElementById('modal-edit-stats') as HTMLDivElement;
 const modalResults = document.getElementById('modal-results-screen') as HTMLDivElement;
@@ -33,6 +37,7 @@ modalBackdrop.innerHTML = '';
 
 let game = new Game(canvas);
 
+// Click restart button
 restartBtns.forEach(el => el.addEventListener('click', () => {
     for (const modal of modals) {
         modal.style.opacity = '0';
@@ -46,6 +51,7 @@ restartBtns.forEach(el => el.addEventListener('click', () => {
     game.start();
 }));
 
+// Click backdrop of modal
 modalBackdrop.addEventListener('click', e => {
     if (e.target !== modalBackdrop) {
         return;
@@ -58,12 +64,22 @@ modalBackdrop.addEventListener('click', e => {
     modalBackdrop.style.pointerEvents = 'none';
     modalBackdrop.innerHTML = '';
 });
+
+// Score changes
+document.addEventListener(EVENT_SCORE_CHANGE, e => {
+    currentScore.innerText = `${e.detail.score}`;
+});
+
+// Power meter changes
 document.addEventListener(EVENT_POWER_CHANGE, e => {
     powerMeter.style.transition = `width ${e.detail.transitionTime}ms ease`;
     powerMeter.style.width = `${e.detail.percent}%`;
 });
+
+// Game ends
 document.addEventListener(EVENT_GAME_END, e => {
     powerMeter.style.width = '0%';
+    currentScore.innerText = '0';
 
     modalBackdrop.appendChild(modalResults);
     setTimeout(() => {
@@ -75,9 +91,9 @@ document.addEventListener(EVENT_GAME_END, e => {
         modalBackdrop.style.backgroundColor = 'rgb(0, 0, 0, 0.8)';
         modalResults.style.opacity = '1';
     }, 5);
-
 });
 
+// Screen resize
 const callbackResize = () => {
     const UIHeight = UIBar.getBoundingClientRect().height;
     const heightToUse = (window.innerHeight - UIHeight) * 0.9
@@ -92,4 +108,5 @@ window.addEventListener(
     callbackResize,
 );
 
+// Start game
 game.start();

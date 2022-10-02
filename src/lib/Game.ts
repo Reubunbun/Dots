@@ -1,8 +1,10 @@
 import {
     type GameEndEventParams,
     type PowerChangeEventParams,
+    type ScoreChangeEventParams,
     EVENT_GAME_END,
     EVENT_POWER_CHANGE,
+    EVENT_SCORE_CHANGE,
 } from '../types/globals';
 import Vector from './Vector';
 import Player from './entities/Player';
@@ -20,6 +22,7 @@ class Game {
 
     private _ended: boolean = false;
     private _timeGameStart: number = Date.now();
+    private _score: number = 0;
     private _collectablesCollected: number = 0;
     private _allObstacles: Set<Obstacle> = new Set();
     private _times: Array<number> = [];
@@ -99,7 +102,7 @@ class Game {
                 EVENT_GAME_END,
                 {
                     detail: {
-                        score: 1,
+                        score: this._score,
                         time: Date.now() - this._timeGameStart,
                         collected: this._collectablesCollected,
                     },
@@ -158,6 +161,7 @@ class Game {
             if (entity instanceof Obstacle) {
                 if (entity.isCollidingWith(this._player)) {
                     if (this._player.inPowerup()) {
+                        this._increaseScore(20);
                         this._allObstacles.delete(entity);
                     } else {
                         return this.stop();
@@ -169,6 +173,7 @@ class Game {
                 if (entity.isCollidingWith(this._player)) {
                     this._collectablesCollected++;
                     this._player.addCharge();
+                    this._increaseScore(10);
 
                     document.dispatchEvent(new CustomEvent<PowerChangeEventParams>(
                         EVENT_POWER_CHANGE,
@@ -211,11 +216,24 @@ class Game {
                         percent: this._player.getChargePercent(),
                         transitionTime: 100,
                     },
-                }
+                },
             ));
         }
 
         this._animationId = requestAnimationFrame(this._nextFrame.bind(this));
+    }
+
+    private _increaseScore(increment: number) : void
+    {
+        this._score += increment;
+        document.dispatchEvent(new CustomEvent<ScoreChangeEventParams>(
+            EVENT_SCORE_CHANGE,
+            {
+                detail: {
+                    score: this._score,
+                },
+            },
+        ));
     }
 
     private _getRandomPositionToSpawn(entityRadius: number) : Vector

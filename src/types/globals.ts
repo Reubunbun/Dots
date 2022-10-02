@@ -10,3 +10,8 @@ export interface PowerChangeEventParams {
     percent: number;
     transitionTime: number;
 };
+
+export const EVENT_SCORE_CHANGE = 'scoreChange';
+export interface ScoreChangeEventParams {
+    score: number;
+};
