@@ -6,7 +6,7 @@ import InputManager from '../InputManager';
 class Player extends Entity {
     private static readonly MAX_VELOCITY = 5;
     private static readonly DRAG = 0.9;
-    private static readonly CHARGE_NEEDED = 1;
+    private static readonly CHARGE_NEEDED = 8;
     private static readonly POWERUP_TIME = 3.5;
     private static readonly POWERUP_COLOUR_ROTATIONS = 10;
     private static readonly TIME_PER_POWERUP_COLOUR =

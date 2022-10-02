@@ -3,12 +3,18 @@
     <head>
         <meta charset="utf-8" />
         <title>Dots</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link
+            href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;600;700;800&display=swap"
+            rel="stylesheet"
+        >
     </head>
     <body>
         <div class="container-main">
             <div class="container-UI" id="UI-bar">
                 <div class="container-btns">
-                    <button id="btn-restart">Restart</button>
+                    <button class="btn-restart">Restart</button>
                     <button id="btn-change-stats">Change Stats</button>
                     <button id="btn-leaderboard">Leaderboard</button>
                 </div>
@@ -16,7 +22,28 @@
                     <span id="power-meter"></span>
                 </div>
             </div>
-            <canvas id="game-canvas" />
+            <canvas id="game-canvas">
+        </div>
+        <div id="modal-backdrop">
+            <div class="modal" id="modal-edit-stats">
+
+            </div>
+            <div class="modal" id="modal-results-screen">
+                <h2>Game Over!</h2>
+                <p>
+                    Total Collected: <span id="results-collected"></span>
+                    <br>
+                    <br>
+                    Time Taken: <span id="results-time"></span>
+                    <br>
+                    <br>
+                    Score: <span id="results-score"></span>
+                </p>
+                <div>
+                    <button class="btn-restart">Restart</button>
+                    <button>Submit Result</button>
+                </div>
+            </div>
         </div>
     </body>
 

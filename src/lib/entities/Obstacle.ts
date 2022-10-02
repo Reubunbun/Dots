@@ -39,11 +39,11 @@ class Obstacle extends Entity {
 
         this._spawnFrames = Math.max(this._spawnFrames - deltaTime, 0);
         if (this._spawnFrames > 0) {
-            // this._colour = Colour.lerp(
-            //     new Colour(255, 0, 0, 0),
-            //     new Colour(255, 0, 0, 1),
-            //     1 - (this._spawnFrames / Obstacle.SPAWN_TIME),
-            // );
+            this._colour = Colour.lerp(
+                new Colour(255, 0, 0, 0),
+                new Colour(255, 0, 0, 1),
+                1 - (this._spawnFrames / Obstacle.SPAWN_TIME),
+            );
             this._colour =  new Colour(255, 0, 0, 1);
         }
 

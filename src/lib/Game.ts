@@ -83,7 +83,7 @@ class Game {
         this._animationId = requestAnimationFrame(this._nextFrame.bind(this));
     }
 
-    stop() : void
+    stop(exitEarly?: boolean) : void
     {
         if (this._ended) {
             return;
@@ -94,17 +94,19 @@ class Game {
 
         this._context.fillStyle = 'black';
         this._context.fillRect(-100, -100, Game.REF_WIDTH + 200, Game.REF_HEIGHT + 200);
-        document.dispatchEvent(new CustomEvent<GameEndEventParams>(
-            EVENT_GAME_END,
-            {
-                detail: {
-                    score: 1,
-                    time: Date.now() - this._timeGameStart,
-                    collected: this._collectablesCollected,
-                },
-                bubbles: true,
-            }
-        ));
+        if (!exitEarly) {
+            document.dispatchEvent(new CustomEvent<GameEndEventParams>(
+                EVENT_GAME_END,
+                {
+                    detail: {
+                        score: 1,
+                        time: Date.now() - this._timeGameStart,
+                        collected: this._collectablesCollected,
+                    },
+                    bubbles: true,
+                }
+            ));
+        }
     }
 
     private _nextFrame(frameTime: number) : void
@@ -181,7 +183,6 @@ class Game {
                     this._collectable.resetPosition(this._getRandomPositionToSpawn(
                         Collectable.RADIUS,
                     ));
-                    console.log('new collectable position:', this._collectable.position);
                     this._allObstacles.add(
                         new Obstacle(
                             this._getRandomPositionToSpawn(Obstacle.RADIUS),
