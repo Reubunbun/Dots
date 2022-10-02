@@ -23,14 +23,37 @@ body {
 .container-UI {
     width: 100%;
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
     align-items: flex-end;
     gap: 1rem;
 }
-.container-UI button {
+
+.container-UI .container-btns {
     height: 50%;
+    width: 50%;
+}
+.container-UI .container-btns button {
+    height: 100%;
     width: 8rem;
     cursor: pointer;
+}
+
+.container-UI .container-power-meter {
+    --border-radius: .5rem;
+
+    width: 20%;
+    height: 50%;
+    background-color: white;
+    border-radius: var(--border-radius);
+}
+
+.container-UI .container-power-meter #power-meter {
+    background-color: limegreen;
+    display: inline-block;
+    height: 100%;
+    width: 0%;
+    border-bottom-left-radius: var(--border-radius);
+    border-top-left-radius: var(--border-radius);
 }
 
 #game-canvas {

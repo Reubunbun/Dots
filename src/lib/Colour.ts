@@ -1,4 +1,13 @@
 class Colour {
+    public static RED = new Colour(255, 0, 0, 1);
+    public static GREEN = new Colour(0, 255, 0, 1);
+    public static BLUE = new Colour(0, 0, 255, 1);
+    public static PINK = new Colour(255, 0, 255, 1);
+    public static YELLOW = new Colour(255, 255, 0, 1);
+    public static PURPLE = new Colour(128, 0, 255, 1);
+    public static TEAL = new Colour(0, 255, 255, 1);
+    public static ORANGE = new Colour(255, 128, 0, 1);
+
     private _r: number;
     private _g: number;
     private _b: number;
@@ -57,16 +66,26 @@ class Colour {
     ) : Colour
     {
         return new this(
-            from.r + (Math.abs(to.r - from.r) * percent),
-            from.g + (Math.abs(to.g - from.g) * percent),
-            from.b + (Math.abs(to.b - from.b) * percent),
-            from.a + (Math.abs(to.a - from.a) * percent),
+            from.r + ((to.r - from.r) * percent),
+            from.g + ((to.g - from.g) * percent),
+            from.b + ((to.b - from.b) * percent),
+            from.a + ((to.a - from.a) * percent),
         );
     }
 
     static from(colour: Colour) : Colour
     {
         return new this(colour.r, colour.g, colour.b, colour.a);
+    }
+
+    equals(colour: Colour) : boolean
+    {
+        return (
+            colour.r === this._r &&
+            colour.g === this._g &&
+            colour.b === this._b &&
+            colour.a === this._a
+        );
     }
 }
 

@@ -39,25 +39,21 @@ class Obstacle extends Entity {
 
         this._spawnFrames = Math.max(this._spawnFrames - deltaTime, 0);
         if (this._spawnFrames > 0) {
-            this._colour = Colour.lerp(
-                new Colour(255, 0, 0, 0),
-                new Colour(255, 0, 0, 1),
-                1 - (this._spawnFrames / Obstacle.SPAWN_TIME),
-            );
+            // this._colour = Colour.lerp(
+            //     new Colour(255, 0, 0, 0),
+            //     new Colour(255, 0, 0, 1),
+            //     1 - (this._spawnFrames / Obstacle.SPAWN_TIME),
+            // );
+            this._colour =  new Colour(255, 0, 0, 1);
         }
 
         if (
-            this._position.x < this._radius ||
-            this._position.x > (Game.REF_WIDTH - this._radius) ||
-            this._position.y < this._radius ||
-            this._position.y > (Game.REF_HEIGHT - this._radius)
+            this._position.x < (Game.BORDER_WIDTH + this._radius) ||
+            this._position.x > (Game.STAGE_WIDTH + Game.BORDER_WIDTH - this._radius) ||
+            this._position.y < (Game.BORDER_WIDTH + this._radius) ||
+            this._position.y > (Game.STAGE_HEIGHT + Game.BORDER_WIDTH - this._radius)
         ) {
-            this._position.clampSelf(
-                this._radius,
-                Game.REF_WIDTH - this._radius,
-                this._radius,
-                Game.REF_HEIGHT - this._radius,
-            );
+            this._clampToStage();
             this._velocity.multSelf(-1);
         }
     }

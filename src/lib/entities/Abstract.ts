@@ -1,5 +1,6 @@
 import Vector from '../Vector';
 import Colour from '../Colour';
+import Game from '../Game';
 
 abstract class Entity {
     protected _velocity: Vector = new Vector();
@@ -59,7 +60,17 @@ abstract class Entity {
         this._velocity = velocity;
     }
 
-    _move(deltaTime: number) : void
+    protected _clampToStage() : void
+    {
+        this._position.clampSelf(
+            Game.BORDER_WIDTH + this._radius,
+            Game.STAGE_WIDTH + Game.BORDER_WIDTH - this._radius,
+            Game.BORDER_WIDTH + this._radius,
+            Game.STAGE_HEIGHT + Game.BORDER_WIDTH - this._radius,
+        )
+    }
+
+    protected _move(deltaTime: number) : void
     {
         this._position.addSelf(
             this._velocity

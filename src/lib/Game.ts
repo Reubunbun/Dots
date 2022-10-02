@@ -1,14 +1,22 @@
-import { type GameEndEventParams, EVENT_GAME_END } from '../types/globals';
+import {
+    type GameEndEventParams,
+    type PowerChangeEventParams,
+    EVENT_GAME_END,
+    EVENT_POWER_CHANGE,
+} from '../types/globals';
 import Vector from './Vector';
 import Player from './entities/Player';
 import Obstacle from './entities/Obstacle';
 import Collectable from './entities/Collectable';
 
 class Game {
-    public static readonly REF_WIDTH = 1920;
-    public static readonly REF_HEIGHT = 903;
-
     private static readonly MIN_SPAWN_DIST_FROM_PLAYER = 200;
+    private static readonly BORDER_COLOUR = '#c022ff'
+    public static readonly BORDER_WIDTH = 4;
+    private static readonly REF_WIDTH = 1920 + (Game.BORDER_WIDTH * 2);
+    private static readonly REF_HEIGHT = 903 + (Game.BORDER_WIDTH * 2);
+    public static readonly STAGE_WIDTH = Game.REF_WIDTH - (Game.BORDER_WIDTH * 2);
+    public static readonly STAGE_HEIGHT = Game.REF_HEIGHT - (Game.BORDER_WIDTH * 2);
 
     private _ended: boolean = false;
     private _timeGameStart: number = Date.now();
@@ -28,7 +36,7 @@ class Game {
         this._context = canvas.getContext('2d');
 
         this._player = new Player(
-            new Vector(Game.REF_WIDTH / 2, Game.REF_HEIGHT / 2),
+            new Vector(Game.STAGE_WIDTH / 2, Game.STAGE_HEIGHT / 2),
         );
 
         const firstObstacle = new Obstacle(
@@ -41,7 +49,7 @@ class Game {
         );
     }
 
-    resize(screenWidth: number, screenHeight: number) : void
+    resize(screenWidth: number, screenHeight: number) : number
     {
         this._canvas.style.width = `${screenWidth}px`;
         this._canvas.style.height = `${screenHeight}px`;
@@ -52,11 +60,12 @@ class Game {
             screenWidth / Game.REF_WIDTH,
             screenHeight / Game.REF_HEIGHT,
         );
+        const screenXPadding = (this._canvas.width - Game.REF_WIDTH * scaleFitNative) / 2;
 
         this._context.setTransform(
             scaleFitNative, 0,
             0, scaleFitNative,
-            (this._canvas.width - Game.REF_WIDTH * scaleFitNative) / 2,
+            screenXPadding,
             (this._canvas.height - Game.REF_HEIGHT * scaleFitNative) / 2,
         );
 
@@ -65,6 +74,8 @@ class Game {
         } else {
             this._context.imageSmoothingEnabled = false;
         }
+
+        return screenXPadding;
     }
 
     start() : void
@@ -114,14 +125,19 @@ class Game {
         const deltaTime = (frameTime - this._lastFrameTime) / 1000;
         this._lastFrameTime = frameTime;
 
-        // Drawings sometimes bleed over the edge of the game area, so paint
-        // over the areas around with black first
+        // Background
         this._context.fillStyle = 'black';
         this._context.fillRect(-100, -100, Game.REF_WIDTH + 200, Game.REF_HEIGHT + 200);
 
-        this._context.fillRect(0, 0, Game.REF_WIDTH, Game.REF_HEIGHT);
-        this._context.strokeStyle = 'purple';
-        this._context.strokeRect(0, 1, Game.REF_WIDTH, Game.REF_HEIGHT -2);
+        // Border
+        this._context.strokeStyle = Game.BORDER_COLOUR;
+        this._context.lineWidth = Game.BORDER_WIDTH;
+        this._context.strokeRect(
+            Game.BORDER_WIDTH / 2,
+            Game.BORDER_WIDTH / 2,
+            Game.REF_WIDTH - Game.BORDER_WIDTH,
+            Game.REF_HEIGHT - Game.BORDER_WIDTH,
+        );
         this._context.strokeStyle = 'none';
 
         this._context.fillStyle = 'white';
@@ -152,9 +168,20 @@ class Game {
                     this._collectablesCollected++;
                     this._player.addCharge();
 
+                    document.dispatchEvent(new CustomEvent<PowerChangeEventParams>(
+                        EVENT_POWER_CHANGE,
+                        {
+                            detail: {
+                                percent: this._player.getChargePercent(),
+                                transitionTime: 750,
+                            },
+                        }
+                    ));
+
                     this._collectable.resetPosition(this._getRandomPositionToSpawn(
                         Collectable.RADIUS,
                     ));
+                    console.log('new collectable position:', this._collectable.position);
                     this._allObstacles.add(
                         new Obstacle(
                             this._getRandomPositionToSpawn(Obstacle.RADIUS),
@@ -175,21 +202,34 @@ class Game {
             this._context.fill();
         }
 
+        if (this._player.inPowerup()) {
+            document.dispatchEvent(new CustomEvent<PowerChangeEventParams>(
+                EVENT_POWER_CHANGE,
+                {
+                    detail: {
+                        percent: this._player.getChargePercent(),
+                        transitionTime: 100,
+                    },
+                }
+            ));
+        }
+
         this._animationId = requestAnimationFrame(this._nextFrame.bind(this));
     }
 
     private _getRandomPositionToSpawn(entityRadius: number) : Vector
     {
+        const minX = Game.BORDER_WIDTH + entityRadius;
+        const maxX = Game.STAGE_WIDTH + Game.BORDER_WIDTH - entityRadius;
+        const minY = Game.BORDER_WIDTH + entityRadius;
+        const maxY = Game.STAGE_HEIGHT + Game.BORDER_WIDTH - entityRadius;
+
         const randomPosition = new Vector(
             Math.floor(
-                Math.random() *
-                    (Game.REF_WIDTH - (2 * entityRadius) + 1) +
-                    entityRadius,
+                Math.random() * (maxX - minX + 1) + minX,
             ),
             Math.floor(
-                Math.random() *
-                    (Game.REF_HEIGHT - (2 * entityRadius) + 1) +
-                    entityRadius,
+                Math.random() * (maxY - minY + 1) + minY,
             ),
         );
 
