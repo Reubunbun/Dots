@@ -1,3 +1,5 @@
+import lerp, {type LerpFunction} from './Lerp';
+
 class Colour {
     public static RED = new Colour(255, 0, 0, 1);
     public static GREEN = new Colour(0, 255, 0, 1);
@@ -63,13 +65,14 @@ class Colour {
         from: Colour,
         to: Colour,
         percent: number,
+        lerpFunc: LerpFunction = 'linear',
     ) : Colour
     {
         return new this(
-            from.r + ((to.r - from.r) * percent),
-            from.g + ((to.g - from.g) * percent),
-            from.b + ((to.b - from.b) * percent),
-            from.a + ((to.a - from.a) * percent),
+            lerp(from.r, to.r, percent, lerpFunc),
+            lerp(from.g, to.g, percent, lerpFunc),
+            lerp(from.b, to.b, percent, lerpFunc),
+            lerp(from.a, to.a, percent, lerpFunc),
         );
     }
 

@@ -73,6 +73,11 @@ class Vector {
 
         return this;
     }
+
+    toString() : string
+    {
+        return `(${this.x}, ${this.y})`;
+    }
 }
 
 export default Vector;

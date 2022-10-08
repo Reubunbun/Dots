@@ -27,7 +27,46 @@
         </div>
         <div id="modal-backdrop">
             <div class="modal" id="modal-edit-stats">
-
+                <h2>Change Stats:</h2>
+                <div class="container-stats">
+                    <div>
+                        <div class="container-slider">
+                            <p>Speed:</p>
+                            <input
+                                type="range"
+                                id="slider-speed"
+                                min="1" max="100" value="50"
+                            >
+                        </div>
+                        <div class="container-slider">
+                            <p>Size:</p>
+                            <input
+                                type="range"
+                                id="slider-size"
+                                min="1" max="100" value="50"
+                            >
+                        </div>
+                        <div class="container-slider">
+                            <p>Invincibility Time:</p>
+                            <input
+                                type="range"
+                                id="slider-inv-time"
+                                min="1" max="100" value="50"
+                            >
+                        </div>
+                        <div class="container-slider">
+                            <p>Charges Needed:</p>
+                            <input
+                                type="range"
+                                id="slider-inv-time"
+                                min="1" max="100" value="50"
+                            >
+                        </div>
+                    </div>
+                    <div>
+                        <canvas id="stats-canvas">
+                    </div>
+                </div>
             </div>
             <div class="modal" id="modal-results-screen">
                 <h2>Game Over!</h2>

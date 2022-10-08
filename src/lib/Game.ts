@@ -6,10 +6,12 @@ import {
     EVENT_POWER_CHANGE,
     EVENT_SCORE_CHANGE,
 } from '../types/globals';
-import Vector from './Vector';
+import Vector from './helpers/Vector';
+import lerp from './helpers/Lerp';
 import Player from './entities/Player';
 import Obstacle from './entities/Obstacle';
 import Collectable from './entities/Collectable';
+import Particle from  './entities/Particle';
 
 class Game {
     private static readonly MIN_SPAWN_DIST_FROM_PLAYER = 200;
@@ -25,6 +27,7 @@ class Game {
     private _score: number = 0;
     private _collectablesCollected: number = 0;
     private _allObstacles: Set<Obstacle> = new Set();
+    private _allParticles: Set<Particle> = new Set();
     private _times: Array<number> = [];
     private _collectable: Collectable;
     private _player: Player;
@@ -150,9 +153,10 @@ class Game {
         this._context.fillText(`${fps}`, 10, 50);
 
         const allEntities = [
-            this._player,
             this._collectable,
+            ...this._allParticles,
             ...this._allObstacles,
+            this._player,
         ];
 
         for (const entity of allEntities) {
@@ -163,6 +167,16 @@ class Game {
                     if (this._player.inPowerup()) {
                         this._increaseScore(20);
                         this._allObstacles.delete(entity);
+
+                        for (let i = 0; i < 5; i++) {
+                            this._allParticles.add(new Particle(
+                                entity.position,
+                                entity.getColourAsObject(),
+                                entity.radius,
+                                this._player.speed,
+                                this._player.velocity
+                            ));
+                        }
                     } else {
                         return this.stop();
                     }
@@ -185,14 +199,33 @@ class Game {
                         }
                     ));
 
-                    this._collectable.resetPosition(this._getRandomPositionToSpawn(
+                    for (let i = 0; i < 5; i++) {
+                        this._allParticles.add(new Particle(
+                            this._collectable.position,
+                            this._collectable.getColourAsObject(),
+                            this._collectable.radius,
+                            this._player.speed,
+                            this._player.velocity
+                        ));
+                    }
+
+                    const nextCollectablePos = this._getRandomPositionToSpawn(
                         Collectable.RADIUS,
-                    ));
+                    );
+                    console.log('New collectable pos', nextCollectablePos.toString());
+                    this._collectable.resetPosition(nextCollectablePos);
+
                     this._allObstacles.add(
                         new Obstacle(
                             this._getRandomPositionToSpawn(Obstacle.RADIUS),
                         ),
                     );
+                }
+            }
+
+            if (entity instanceof Particle) {
+                if (entity.shouldDespawn()) {
+                    this._allParticles.delete(entity);
                 }
             }
 
@@ -206,6 +239,36 @@ class Game {
                 2 * Math.PI,
             );
             this._context.fill();
+
+            const {r, g, b, a} = entity.getColourAsObject();
+            const maxTailWidth = entity.radius * 2;
+            const minTailWidth = 2;
+            for (let i = entity.trail.length - 1; i >= 0 ; i--) {
+                this._context.lineWidth = lerp(
+                    maxTailWidth,
+                    minTailWidth,
+                    (entity.trail.length - i) / entity.trail.length,
+                    'ease',
+                );
+
+                this._context.beginPath();
+
+                if (i === (entity.trail.length - 1)) {
+                    const pointFrom = entity.position;
+                    const { Position: pointTo, Opacity } = entity.trail[i];
+                    this._context.strokeStyle = `rgb(${r}, ${g}, ${b}, ${Opacity * a})`;
+                    this._context.moveTo(pointFrom.x, pointFrom.y);
+                    this._context.lineTo(pointTo.x, pointTo.y);
+                } else {
+                    const { Position: pointFrom } = entity.trail[i + 1];
+                    const { Position: pointTo, Opacity } = entity.trail[i];
+                    this._context.strokeStyle = `rgb(${r}, ${g}, ${b}, ${Opacity * a})`;
+                    this._context.moveTo(pointFrom.x, pointFrom.y);
+                    this._context.lineTo(pointTo.x, pointTo.y);
+                }
+
+                this._context.stroke();
+            }
         }
 
         if (this._player.inPowerup()) {

@@ -1,5 +1,5 @@
-import Vector from '../Vector';
-import Colour from '../Colour';
+import Vector from '../helpers/Vector';
+import Colour from '../helpers/Colour';
 import Entity from './Abstract';
 import InputManager from '../InputManager';
 
@@ -24,7 +24,7 @@ class Player extends Entity {
         radius: number = 25,
         speed: number = 125,
     ) {
-        super(position, colour, radius, speed);
+        super(position, colour, radius, speed, 0.4);
         this._baseColour = Colour.from(colour);
     }
 
@@ -97,8 +97,7 @@ class Player extends Entity {
         );
 
         this._velocity.multSelf(Player.DRAG);
-        this._move(deltaTime);
-        this._clampToStage();
+        super.nextFrame(deltaTime);
     }
 
     addCharge() : void
@@ -123,6 +122,10 @@ class Player extends Entity {
     inPowerup() : boolean
     {
         return this._powerupRemaining > 0;
+    }
+
+    get velocity() {
+        return this._velocity;
     }
 }
 

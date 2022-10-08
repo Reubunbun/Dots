@@ -1,7 +1,7 @@
-import Vector from '../Vector';
+import Vector from '../helpers/Vector';
 import Entity from './Abstract';
 import Game from '../Game';
-import Colour from '../Colour';
+import Colour from '../helpers/Colour';
 
 class Obstacle extends Entity {
     private static readonly COLOUR = new Colour(255, 0, 0, 1);
@@ -24,6 +24,7 @@ class Obstacle extends Entity {
                 (Math.random() <= 0.5 ? -1 : 1) *
                     Math.floor(Math.random() * Obstacle.SPEED_VARIANCE)
             ),
+            1,
         );
 
         if (Math.random() <= 0.5) {
@@ -35,27 +36,27 @@ class Obstacle extends Entity {
 
     nextFrame(deltaTime: number) : void
     {
-        this._move(deltaTime);
-
         this._spawnFrames = Math.max(this._spawnFrames - deltaTime, 0);
         if (this._spawnFrames > 0) {
             this._colour = Colour.lerp(
                 new Colour(255, 0, 0, 0),
                 new Colour(255, 0, 0, 1),
                 1 - (this._spawnFrames / Obstacle.SPAWN_TIME),
+                'ease',
             );
-            this._colour =  new Colour(255, 0, 0, 1);
         }
 
         if (
-            this._position.x < (Game.BORDER_WIDTH + this._radius) ||
-            this._position.x > (Game.STAGE_WIDTH + Game.BORDER_WIDTH - this._radius) ||
-            this._position.y < (Game.BORDER_WIDTH + this._radius) ||
-            this._position.y > (Game.STAGE_HEIGHT + Game.BORDER_WIDTH - this._radius)
+            this._position.x <= (Game.BORDER_WIDTH + this._radius) ||
+            this._position.x >= (Game.STAGE_WIDTH + Game.BORDER_WIDTH - this._radius) ||
+            this._position.y <= (Game.BORDER_WIDTH + this._radius) ||
+            this._position.y >= (Game.STAGE_HEIGHT + Game.BORDER_WIDTH - this._radius)
         ) {
             this._clampToStage();
             this._velocity.multSelf(-1);
         }
+
+        super.nextFrame(deltaTime);
     }
 
     isCollidingWith(entity: Entity) : boolean

@@ -1,5 +1,5 @@
-import Colour from '../Colour';
-import Vector from '../Vector';
+import Colour from '../helpers/Colour';
+import Vector from '../helpers/Vector';
 import Entity from './Abstract';
 
 class Collectable extends Entity {
@@ -8,7 +8,7 @@ class Collectable extends Entity {
 
     constructor(position: Vector)
     {
-        super(position, Collectable.COLOUR, Collectable.RADIUS, 0);
+        super(position, Collectable.COLOUR, Collectable.RADIUS, 0, 0);
     }
 
     resetPosition(newPosition: Vector) : void
