@@ -324,6 +324,8 @@ class Game {
             randomPosition.addSelf(dirVector.mult(distToMove));
         }
 
+        randomPosition.clampSelf(minX, maxX, minY, maxY);
+
         return randomPosition;
     }
 }

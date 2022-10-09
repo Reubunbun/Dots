@@ -5,7 +5,7 @@ import InputManager from '../InputManager';
 
 class Player extends Entity {
     private static readonly MAX_VELOCITY = 5;
-    private static readonly DRAG = 0.9;
+    private static readonly DRAG = 0.875;
     private static readonly CHARGE_NEEDED = 8;
     private static readonly POWERUP_TIME = 3.5;
     private static readonly POWERUP_COLOUR_ROTATIONS = 10;
@@ -73,22 +73,29 @@ class Player extends Entity {
             this._colour = this._baseColour;
         }
 
+        const inputVector = new Vector(0, 0);
         for (const input of InputManager.Instance.getAllPressed()) {
             switch (input) {
                 case 'UP':
-                    this._velocity.addSelf(new Vector(0, -1));
+                    inputVector.addSelf(new Vector(0, -1));
                     continue;
                 case 'DOWN':
-                    this._velocity.addSelf(new Vector(0, 1));
+                    inputVector.addSelf(new Vector(0, 1));
                     continue;
                 case 'LEFT':
-                    this._velocity.addSelf(new Vector(-1, 0));
+                    inputVector.addSelf(new Vector(-1, 0));
                     continue;
                 case 'RIGHT':
-                    this._velocity.addSelf(new Vector(1, 0));
+                    inputVector.addSelf(new Vector(1, 0));
                     continue;
             }
         }
+
+        if (inputVector.x !== 0 && inputVector.y !== 0) {
+            inputVector.normaliseSelf();
+        }
+
+        this._velocity.addSelf(inputVector);
 
         // Clamp velocity
         this._velocity.clampSelf(

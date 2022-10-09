@@ -74,6 +74,13 @@ class Vector {
         return this;
     }
 
+    normaliseSelf() : Vector
+    {
+        const len = Math.sqrt((this.x * this.x) + (this.y * this.y));
+        this.multSelf(1/len);
+        return this;
+    }
+
     toString() : string
     {
         return `(${this.x}, ${this.y})`;
