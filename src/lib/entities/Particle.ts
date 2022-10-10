@@ -1,7 +1,6 @@
 import Entity from './Abstract';
 import Vector from '../helpers/Vector';
 import Colour from '../helpers/Colour';
-import Game from '../Game';
 
 class Particle extends Entity {
     private static readonly TIME_TO_FADE = 2;
@@ -38,23 +37,29 @@ class Particle extends Entity {
         );
     }
 
-    nextFrame(deltaTime: number) : void
+    nextFrame(
+        deltaTime: number,
+        stageMinX: number,
+        stageMaxX: number,
+        stageMinY: number,
+        stageMaxY: number,
+    ) : void
     {
         this._velocity.addSelf(new Vector(0, Particle.GRAVITY_FORCE));
 
         if (
-            this.x === (Game.BORDER_WIDTH + this._radius) ||
-            this.x === (Game.STAGE_WIDTH + Game.BORDER_WIDTH - this._radius)
+            this.x === (stageMinX + this._radius) ||
+            this.x === (stageMaxX - this._radius)
 
         ) {
             this._velocity.x *= -Particle.BOUNCE_MULTIPLIER;
         }
 
-        if (this.y === (Game.BORDER_WIDTH + this._radius)) {
+        if (this.y === (stageMinY + this._radius)) {
             this._velocity.y *= -Particle.BOUNCE_MULTIPLIER;
         }
 
-        if (this.y === Game.STAGE_HEIGHT + Game.BORDER_WIDTH - this._radius) {
+        if (this.y === stageMaxY - this._radius) {
             this._velocity.multSelf(Particle.WALL_FRICTION);
 
             this._timeInFade = Math.max(this._timeInFade - deltaTime, 0);
@@ -65,7 +70,13 @@ class Particle extends Entity {
             );
         }
 
-        super.nextFrame(deltaTime);
+        super.nextFrame(
+            deltaTime,
+            stageMinX,
+            stageMaxX,
+            stageMinY,
+            stageMaxY,
+        );
     }
 
     shouldDespawn() : boolean

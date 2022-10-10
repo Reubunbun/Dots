@@ -1,9 +1,16 @@
 import Vector from '../helpers/Vector';
 import Colour from '../helpers/Colour';
+import lerp from '../helpers/Lerp';
 import Entity from './Abstract';
 import InputManager from '../InputManager';
 
 class Player extends Entity {
+    private static readonly MIN_RADIUS = 10;
+    private static readonly MAX_RADIUS = 50;
+
+    private static readonly MIN_SPEED = 70;
+    private static readonly MAX_SPEED = 180;
+
     private static readonly MAX_VELOCITY = 5;
     private static readonly DRAG = 0.875;
     private static readonly CHARGE_NEEDED = 8;
@@ -28,7 +35,13 @@ class Player extends Entity {
         this._baseColour = Colour.from(colour);
     }
 
-    nextFrame(deltaTime: number) : void
+    nextFrame(
+        deltaTime: number,
+        stageMinX: number,
+        stageMaxX: number,
+        stageMinY: number,
+        stageMaxY: number,
+    ) : void
     {
         if (this.inPowerup()) {
             // Lerp between random colours to create rainbow effect
@@ -104,11 +117,21 @@ class Player extends Entity {
         );
 
         this._velocity.multSelf(Player.DRAG);
-        super.nextFrame(deltaTime);
+        super.nextFrame(
+            deltaTime,
+            stageMinX,
+            stageMaxX,
+            stageMinY,
+            stageMaxY,
+        );
     }
 
     addCharge() : void
     {
+        if (this.inPowerup()) {
+            return;
+        }
+
         this._chargeAmount++;
         if (this._chargeAmount === Player.CHARGE_NEEDED) {
             this._chargeAmount = 0;
@@ -129,6 +152,28 @@ class Player extends Entity {
     inPowerup() : boolean
     {
         return this._powerupRemaining > 0;
+    }
+
+    updatePreviewRadius(percent: number) : number
+    {
+        const newRadius = lerp(
+            Player.MIN_RADIUS,
+            Player.MAX_RADIUS,
+            percent,
+        );
+        this._radius = newRadius;
+        return newRadius;
+    }
+
+    updatePreviewSpeed(percent: number) : number
+    {
+        const newSpeed = lerp(
+            Player.MIN_SPEED,
+            Player.MAX_SPEED,
+            percent,
+        );
+        this._speed = newSpeed;
+        return newSpeed;
     }
 
     get velocity() {

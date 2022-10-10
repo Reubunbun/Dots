@@ -1,6 +1,5 @@
 import Vector from '../helpers/Vector';
 import Entity from './Abstract';
-import Game from '../Game';
 import Colour from '../helpers/Colour';
 
 class Obstacle extends Entity {
@@ -34,7 +33,13 @@ class Obstacle extends Entity {
         }
     }
 
-    nextFrame(deltaTime: number) : void
+    nextFrame(
+        deltaTime: number,
+        stageMinX: number,
+        stageMaxX: number,
+        stageMinY: number,
+        stageMaxY: number,
+    ) : void
     {
         this._spawnFrames = Math.max(this._spawnFrames - deltaTime, 0);
         if (this._spawnFrames > 0) {
@@ -47,16 +52,27 @@ class Obstacle extends Entity {
         }
 
         if (
-            this._position.x <= (Game.BORDER_WIDTH + this._radius) ||
-            this._position.x >= (Game.STAGE_WIDTH + Game.BORDER_WIDTH - this._radius) ||
-            this._position.y <= (Game.BORDER_WIDTH + this._radius) ||
-            this._position.y >= (Game.STAGE_HEIGHT + Game.BORDER_WIDTH - this._radius)
+            this._position.x <= (stageMinX + this._radius) ||
+            this._position.x >= (stageMaxX - this._radius) ||
+            this._position.y <= (stageMinY + this._radius) ||
+            this._position.y >= (stageMaxY - this._radius)
         ) {
-            this._clampToStage();
+            this._clampToRect(
+                stageMinX,
+                stageMaxX,
+                stageMinY,
+                stageMaxY,
+            );
             this._velocity.multSelf(-1);
         }
 
-        super.nextFrame(deltaTime);
+        super.nextFrame(
+            deltaTime,
+            stageMinX,
+            stageMaxX,
+            stageMinY,
+            stageMaxY,
+        );
     }
 
     isCollidingWith(entity: Entity) : boolean

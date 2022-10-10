@@ -1,7 +1,6 @@
 import Vector from '../helpers/Vector';
 import Colour from '../helpers/Colour';
 import lerp from '../helpers/Lerp';
-import Game from '../Game';
 
 type TrailPoint = {
     Position: Vector;
@@ -88,13 +87,18 @@ abstract class Entity {
         this._velocity = velocity;
     }
 
-    protected _clampToStage() : void
+    protected _clampToRect(
+        minX: number,
+        maxX: number,
+        minY: number,
+        maxY: number,
+    ) : void
     {
         this._position.clampSelf(
-            Game.BORDER_WIDTH + this._radius,
-            Game.STAGE_WIDTH + Game.BORDER_WIDTH - this._radius,
-            Game.BORDER_WIDTH + this._radius,
-            Game.STAGE_HEIGHT + Game.BORDER_WIDTH - this._radius,
+            minX + this._radius,
+            maxX - this._radius,
+            minY + this._radius,
+            maxY - this._radius,
         );
     }
 
@@ -117,10 +121,21 @@ abstract class Entity {
         this._timeUntilNextTrail = Entity.TIME_BETWEEN_TRAIL_POINTS;
     }
 
-    protected nextFrame(deltaTime: number) : void
+    public nextFrame(
+        deltaTime: number,
+        stageMinX: number,
+        stageMaxX: number,
+        stageMinY: number,
+        stageMaxY: number,
+    ) : void
     {
         this._move(deltaTime);
-        this._clampToStage();
+        this._clampToRect(
+            stageMinX,
+            stageMaxX,
+            stageMinY,
+            stageMaxY,
+        );
 
         for (let i = 0; i < this._trail.length; i++) {
             const trailPoint = this._trail[i];
