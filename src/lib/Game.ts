@@ -13,6 +13,7 @@ import Obstacle from './entities/Obstacle';
 import Collectable from './entities/Collectable';
 import Particle from  './entities/Particle';
 import Entity from './entities/Abstract';
+import Colour from './helpers/Colour';
 
 class Game {
     private static readonly MIN_SPAWN_DIST_FROM_PLAYER = 200;
@@ -38,6 +39,10 @@ class Game {
     private _times: Array<number>;
     private _collectable: Collectable;
     private _player: Player;
+    private _playerSpeed: number = Player.getDefaultSpeed();
+    private _playerRadius: number = Player.getDefaultRadius();
+    private _playerInvTime: number = Player.getDefaultPowerupTime();
+    private _playerChargesNeeded: number = Player.getDefaultChargesNeeded();
     private _gameAnimationId: number;
     private _lastFrameTime: number;
     private _gameCanvas: HTMLCanvasElement;
@@ -45,7 +50,6 @@ class Game {
 
     private _previewCanvas: HTMLCanvasElement;
     private _previewCtx: CanvasRenderingContext2D;
-    private _previewPlayer: Player;
     private _previewAnimationId: number;
 
     constructor(gameCanvas: HTMLCanvasElement)
@@ -130,6 +134,11 @@ class Game {
 
         this._player = new Player(
             new Vector(Game.STAGE_WIDTH / 2, Game.STAGE_HEIGHT / 2),
+            new Colour(0, 0, 255, 1),
+            this._playerRadius,
+            this._playerSpeed,
+            this._playerInvTime,
+            this._playerChargesNeeded,
         );
 
         const firstObstacle = new Obstacle(
@@ -155,6 +164,7 @@ class Game {
 
     restartGame() : void
     {
+        this.stopPreview();
         this.stopGame();
         this.startGame();
     }
@@ -235,13 +245,15 @@ class Game {
                     } else {
                         this._ended = true;
 
-                        this._allParticles.add(new Particle(
-                            this._player.position,
-                            this._player.getColourAsObject(),
-                            this._player.radius,
-                            this._player.speed,
-                            this._player.velocity
-                        ));
+                        for (let i = 0; i < 5; i++) {
+                            this._allParticles.add(new Particle(
+                                this._player.position,
+                                this._player.getColourAsObject(),
+                                this._player.radius,
+                                this._player.speed,
+                                this._player.velocity
+                            ));
+                        }
 
                         document.dispatchEvent(new CustomEvent<GameEndEventParams>(
                             EVENT_GAME_END,
@@ -411,19 +423,39 @@ class Game {
 
         this._player = new Player(
             new Vector(Game.PREV_STAGE_WIDTH / 2, Game.PREV_STAGE_HEIGHT / 2),
+            new Colour(0, 0, 255, 1),
+            this._playerRadius,
+            this._playerSpeed,
+            this._playerInvTime,
+            this._playerChargesNeeded,
         );
 
         this._previewAnimationId = requestAnimationFrame(this._nextPreviewFrame.bind(this));
     }
 
-    updatePreviewSize(percent: number) : number
+    stopPreview()
     {
-        return this._player.updatePreviewRadius(percent);
+        cancelAnimationFrame(this._previewAnimationId);
     }
 
-    updatePreviewSpeed(percent:number) : number
+    updatePreviewSize(percent: number) : void
     {
-        return this._player.updatePreviewSpeed(percent);
+        this._playerRadius = this._player.updatePreviewRadius(percent);
+    }
+
+    updatePreviewSpeed(percent: number) : void
+    {
+        this._playerSpeed = this._player.updatePreviewSpeed(percent);
+    }
+
+    updatePreviewInvTime(percent: number) : void
+    {
+        this._playerInvTime = this._player.updatePreviewInvTime(percent);
+    }
+
+    updatePreviewChargesNeeded(percent: number) : void
+    {
+        this._playerChargesNeeded = this._player.updatePreviewChargesNeeded(1 - percent);
     }
 
     private _nextPreviewFrame(frameTime: number) : void

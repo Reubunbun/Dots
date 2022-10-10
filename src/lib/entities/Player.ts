@@ -11,28 +11,77 @@ class Player extends Entity {
     private static readonly MIN_SPEED = 70;
     private static readonly MAX_SPEED = 180;
 
+    private static readonly MIN_POWERUP_TIME = 1.5;
+    private static readonly MAX_POWERUP_TIME = 5;
+
+    private static readonly MIN_CHARGES_NEEDED = 5;
+    private static readonly MAX_CHARGES_NEEDED = 10;
+
     private static readonly MAX_VELOCITY = 5;
     private static readonly DRAG = 0.875;
-    private static readonly CHARGE_NEEDED = 8;
-    private static readonly POWERUP_TIME = 3.5;
     private static readonly POWERUP_COLOUR_ROTATIONS = 10;
-    private static readonly TIME_PER_POWERUP_COLOUR =
-        Player.POWERUP_TIME / Player.POWERUP_COLOUR_ROTATIONS;
 
     private _chargeAmount: number = 0;
     private _powerupRemaining: number = 0;
     private _powerupColours: Array<Colour>;
     private _timeInPowerupColour: number = 0;
-    private _baseColour: Colour;
+    private _powerupTime: number;
+    private _chargesNeeded: number;
+
+    private readonly _baseColour: Colour;
+    private readonly _timePerPowerupColour: number;
+
+    static getDefaultRadius() : number
+    {
+        return lerp(
+            Player.MIN_RADIUS,
+            Player.MAX_RADIUS,
+            0.5
+        );
+    }
+
+    static getDefaultSpeed() : number
+    {
+        return lerp(
+            Player.MIN_SPEED,
+            Player.MAX_SPEED,
+            0.5,
+        );
+    }
+
+    static getDefaultPowerupTime() : number
+    {
+        return lerp(
+            Player.MIN_POWERUP_TIME,
+            Player.MAX_POWERUP_TIME,
+            0.5,
+        );
+    }
+
+    static getDefaultChargesNeeded() : number
+    {
+        return Math.round(
+            lerp(
+                Player.MIN_CHARGES_NEEDED,
+                Player.MAX_CHARGES_NEEDED,
+                0.5,
+            ),
+        );
+    }
 
     constructor(
         position: Vector,
         colour: Colour = new Colour(0, 0, 255, 1),
-        radius: number = 25,
-        speed: number = 125,
+        radius: number,
+        speed: number,
+        invTime: number,
+        chargesNeeded: number,
     ) {
         super(position, colour, radius, speed, 0.4);
         this._baseColour = Colour.from(colour);
+        this._powerupTime = invTime;
+        this._timePerPowerupColour = invTime / Player.POWERUP_COLOUR_ROTATIONS;
+        this._chargesNeeded = chargesNeeded;
     }
 
     nextFrame(
@@ -71,7 +120,7 @@ class Player extends Entity {
                 ];
 
                 this._powerupColours = [currColour, nextColour];
-                this._timeInPowerupColour = Player.TIME_PER_POWERUP_COLOUR;
+                this._timeInPowerupColour = this._timePerPowerupColour;
             }
 
             const [currColour, nextColour] = this._powerupColours;
@@ -79,7 +128,7 @@ class Player extends Entity {
             this._colour = Colour.lerp(
                 currColour,
                 nextColour,
-                1 - (this._timeInPowerupColour / Player.TIME_PER_POWERUP_COLOUR),
+                1 - (this._timeInPowerupColour / this._timePerPowerupColour),
             );
         } else {
             this._powerupColours = [];
@@ -133,20 +182,20 @@ class Player extends Entity {
         }
 
         this._chargeAmount++;
-        if (this._chargeAmount === Player.CHARGE_NEEDED) {
+        if (this._chargeAmount === this._chargesNeeded) {
             this._chargeAmount = 0;
-            this._powerupRemaining = Player.POWERUP_TIME;
+            this._powerupRemaining = this._powerupTime;
         }
     }
 
     getChargePercent() : number
     {
         if (this.inPowerup()) {
-            const remaining = (this._powerupRemaining / Player.POWERUP_TIME);
+            const remaining = (this._powerupRemaining / this._powerupTime);
             return remaining < 0.01 ? 0 : remaining * 100;
         }
 
-        return (this._chargeAmount / Player.CHARGE_NEEDED) * 100;
+        return (this._chargeAmount / this._chargesNeeded) * 100;
     }
 
     inPowerup() : boolean
@@ -174,6 +223,30 @@ class Player extends Entity {
         );
         this._speed = newSpeed;
         return newSpeed;
+    }
+
+    updatePreviewInvTime(percent: number) : number
+    {
+        const newInvTime = lerp(
+            Player.MIN_POWERUP_TIME,
+            Player.MAX_POWERUP_TIME,
+            percent,
+        );
+        this._powerupTime = newInvTime;
+        return newInvTime;
+    }
+
+    updatePreviewChargesNeeded(percent: number) : number
+    {
+        const newChargesNeeded = Math.round(
+            lerp(
+                Player.MIN_CHARGES_NEEDED,
+                Player.MAX_CHARGES_NEEDED,
+                percent,
+            ),
+        );
+        this._chargesNeeded = newChargesNeeded;
+        return newChargesNeeded;
     }
 
     get velocity() {

@@ -161,7 +161,8 @@ button:hover {
 .container-stats .container-stats-meter {
     --border-radius: .5rem;
 
-    width: 100%;
+    width: 80%;
+    transform: translateX(10%);
     height: 2rem;
     background-color: white;
     border-radius: var(--border-radius);

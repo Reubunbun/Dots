@@ -30,6 +30,8 @@ const btnChangeStats = document.getElementById('btn-change-stats') as HTMLButton
 const modalChangeStats = document.getElementById('modal-change-stats') as HTMLDivElement;
 const sliderSize = document.getElementById('slider-size') as HTMLInputElement;
 const sliderSpeed = document.getElementById('slider-speed') as HTMLInputElement;
+const sliderInvTime = document.getElementById('slider-inv-time') as HTMLInputElement;
+const sliderChargesNeeded = document.getElementById('slider-charges-needed') as HTMLInputElement;
 const canvasPreview = document.getElementById('stats-canvas') as HTMLCanvasElement;
 const containerCanvasPreivew = document.getElementById('container-stats-canvas') as HTMLDivElement;
 const restartBtns = document.querySelectorAll('.btn-restart') as NodeListOf<HTMLButtonElement>;
@@ -63,7 +65,7 @@ btnChangeStats.addEventListener('click', () => {
     modalBackdrop.appendChild(modalChangeStats);
     setTimeout(() => {
         modalBackdrop.style.pointerEvents = 'all';
-        modalBackdrop.style.backgroundColor = 'rgb(0, 0, 0, 0.8)';
+        modalBackdrop.style.backgroundColor = 'rgb(0, 0, 0, 0.5)';
         modalChangeStats.style.opacity = '1';
 
         const {width, height} = containerCanvasPreivew.getBoundingClientRect();
@@ -76,6 +78,12 @@ sliderSize.addEventListener('input', e => {
 });
 sliderSpeed.addEventListener('input', e => {
     game.updatePreviewSpeed(+(e.target as HTMLInputElement).value);
+});
+sliderInvTime.addEventListener('input', e => {
+    game.updatePreviewInvTime(+(e.target as HTMLInputElement).value);
+});
+sliderChargesNeeded.addEventListener('input', e => {
+    game.updatePreviewChargesNeeded(+(e.target as HTMLInputElement).value);
 });
 
 // Click backdrop of modal
