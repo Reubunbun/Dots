@@ -140,8 +140,9 @@ button:hover {
 }
 
 #modal-change-stats {
-    width: 75vw;
+    width: 90vw;
     height: 80vh;
+    padding: 1rem;
 }
 
 #modal-change-stats h2 {
@@ -153,7 +154,7 @@ button:hover {
     display: grid;
     height: 100%;
     width: 100%;
-    grid-template-columns: auto 72.5%;
+    grid-template-columns: auto 70%;
     grid-template-rows: 15% auto;
     justify-items: center;
 }
@@ -173,8 +174,73 @@ button:hover {
     display: inline-block;
     height: 100%;
     width: 0%;
-    border-bottom-left-radius: var(--border-radius);
-    border-top-left-radius: var(--border-radius);
+    border-radius: var(--border-radius);
+    transition: width 200ms ease;
+}
+
+.container-colour {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+}
+.container-colour p {
+    margin: 0;
+    font-size: 1.2rem;
+    width: 150px;
+}
+.container-colour input[type=text] {
+    height: 30px;
+    width: 125px;
+    margin-top: 2.5px;
+    border-radius: 5px;
+    border: 2px solid #c022ff;
+}
+
+.container-shared-sliders {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    width: 100%;
+}
+
+.container-meter-and-text p {
+    text-align: center;
+    font-size: 1.75rem;
+    margin-top: 0;
+    margin-bottom: .2rem;
+}
+
+.container-slider {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.container-slider p {
+    margin-top: 0;
+    margin-bottom: .25rem;
+    font-size: 1.75rem;
+}
+.container-slider input[type=range] {
+    margin: 0;
+}
+
+#slider-size {
+    width: 60% !important;
+}
+
+.container-done-btn {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 2rem;
+}
+.container-done-btn button {
+    padding-top: 0.8rem;
+    padding-bottom: 0.8rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    font-size: 1.6rem;
 }
 
 .container-stats > div {
@@ -184,4 +250,98 @@ button:hover {
 #container-stats-canvas {
     display: flex;
     justify-content: center;
+}
+
+
+/*  https://www.cssportal.com/style-input-range/
+    sliders
+*/
+
+:root {
+    --track-bg: #2f18ff;
+    --slider-brdr: #c022ff;
+    --thumb-size: 22px;
+    --track-height: 33px;
+}
+
+input[type=range] {
+    height: var(--track-height);
+    -webkit-appearance: none;
+    background-color: transparent;
+    margin: 10px 0;
+    width: 90%;
+}
+input[type=range]:focus {
+    outline: none;
+}
+input[type=range]::-webkit-slider-runnable-track {
+    width: 100%;
+    height: 10px;
+    cursor: pointer;
+    animate: 0.2s;
+    background-color: var(--track-bg);
+    border-radius: 5px;
+    border: 1px solid var(--slider-brdr);
+}
+input[type=range]::-webkit-slider-thumb {
+    height: var(--thumb-size);
+    width: var(--thumb-size);
+    border-radius: 25px;
+    background-color: black;
+    cursor: pointer;
+    -webkit-appearance: none;
+    margin-top: -6.5px;
+    border: 1px solid var(--slider-brdr);
+}
+input[type=range]:focus::-webkit-slider-runnable-track {
+    background-color: var(--track-bg);
+}
+input[type=range]::-moz-range-track {
+    width: 100%;
+    height: 10px;
+    cursor: pointer;
+    animate: 0.2s;
+    background-color: var(--track-bg);
+    border-radius: 5px;
+    border: 1px solid var(--slider-brdr);
+}
+input[type=range]::-moz-range-thumb {
+    height: var(--thumb-size);
+    width: var(--thumb-size);
+    border-radius: 25px;
+    background-color: black;
+    cursor: pointer;
+}
+input[type=range]::-ms-track {
+    width: 100%;
+    height: 10px;
+    cursor: pointer;
+    animate: 0.2s;
+    background-color: transparent;
+    border-color: transparent;
+    color: transparent;
+}
+input[type=range]::-ms-fill-lower {
+    background-color: var(--track-bg);
+    border: 1px solid var(--slider-brdr);
+    border-radius: 10px;
+}
+input[type=range]::-ms-fill-upper {
+    background-color: var(--track-bg);
+    border: 1px solid var(--slider-brdr);
+    border-radius: 10px;
+}
+input[type=range]::-ms-thumb {
+    margin-top: 1px;
+    height: var(--thumb-size);
+    width: var(--thumb-size);
+    border-radius: 25px;
+    background-color: black;
+    cursor: pointer;
+}
+input[type=range]:focus::-ms-fill-lower {
+    background-color: var(--track-bg);
+}
+input[type=range]:focus::-ms-fill-upper {
+    background-color: var(--track-bg);
 }

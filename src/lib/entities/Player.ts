@@ -3,13 +3,14 @@ import Colour from '../helpers/Colour';
 import lerp from '../helpers/Lerp';
 import Entity from './Abstract';
 import InputManager from '../InputManager';
+import { type HexColour } from '../../types/globals';
 
 class Player extends Entity {
     private static readonly MIN_RADIUS = 10;
     private static readonly MAX_RADIUS = 50;
 
-    private static readonly MIN_SPEED = 70;
-    private static readonly MAX_SPEED = 180;
+    private static readonly MIN_SPEED = 80;
+    private static readonly MAX_SPEED = 190;
 
     private static readonly MIN_POWERUP_TIME = 1.5;
     private static readonly MAX_POWERUP_TIME = 5;
@@ -28,7 +29,7 @@ class Player extends Entity {
     private _powerupTime: number;
     private _chargesNeeded: number;
 
-    private readonly _baseColour: Colour;
+    private _baseColour: Colour;
     private readonly _timePerPowerupColour: number;
 
     static getDefaultRadius() : number
@@ -69,19 +70,48 @@ class Player extends Entity {
         );
     }
 
+    static getDefaultColour() : HexColour
+    {
+        return '#0000FF';
+    }
+
     constructor(
         position: Vector,
-        colour: Colour = new Colour(0, 0, 255, 1),
+        colourHex: HexColour,
         radius: number,
         speed: number,
         invTime: number,
         chargesNeeded: number,
     ) {
-        super(position, colour, radius, speed, 0.4);
+        const colour = Colour.fromHex(colourHex);
+
+        super(
+            position,
+            colour,
+            lerp(
+                Player.MIN_RADIUS,
+                Player.MAX_RADIUS,
+                radius
+            ),
+            lerp(
+                Player.MIN_SPEED,
+                Player.MAX_SPEED,
+                speed,
+            ),
+            0.4,
+        );
         this._baseColour = Colour.from(colour);
-        this._powerupTime = invTime;
-        this._timePerPowerupColour = invTime / Player.POWERUP_COLOUR_ROTATIONS;
-        this._chargesNeeded = chargesNeeded;
+        this._powerupTime = lerp(
+            Player.MIN_POWERUP_TIME,
+            Player.MAX_POWERUP_TIME,
+            invTime,
+        );
+        this._timePerPowerupColour = this._powerupTime / Player.POWERUP_COLOUR_ROTATIONS;
+        this._chargesNeeded = lerp(
+            Player.MIN_CHARGES_NEEDED,
+            Player.MAX_CHARGES_NEEDED,
+            chargesNeeded,
+        );
     }
 
     nextFrame(
@@ -203,7 +233,7 @@ class Player extends Entity {
         return this._powerupRemaining > 0;
     }
 
-    updatePreviewRadius(percent: number) : number
+    updatePreviewRadius(percent: number) : void
     {
         const newRadius = lerp(
             Player.MIN_RADIUS,
@@ -211,10 +241,9 @@ class Player extends Entity {
             percent,
         );
         this._radius = newRadius;
-        return newRadius;
     }
 
-    updatePreviewSpeed(percent: number) : number
+    updatePreviewSpeed(percent: number) : void
     {
         const newSpeed = lerp(
             Player.MIN_SPEED,
@@ -222,10 +251,9 @@ class Player extends Entity {
             percent,
         );
         this._speed = newSpeed;
-        return newSpeed;
     }
 
-    updatePreviewInvTime(percent: number) : number
+    updatePreviewInvTime(percent: number) : void
     {
         const newInvTime = lerp(
             Player.MIN_POWERUP_TIME,
@@ -233,10 +261,9 @@ class Player extends Entity {
             percent,
         );
         this._powerupTime = newInvTime;
-        return newInvTime;
     }
 
-    updatePreviewChargesNeeded(percent: number) : number
+    updatePreviewChargesNeeded(percent: number) : void
     {
         const newChargesNeeded = Math.round(
             lerp(
@@ -246,7 +273,12 @@ class Player extends Entity {
             ),
         );
         this._chargesNeeded = newChargesNeeded;
-        return newChargesNeeded;
+    }
+
+    updatePreviewColour(hex: HexColour) : void
+    {
+        this._colour = Colour.fromHex(hex);
+        this._baseColour = Colour.from(this._colour);
     }
 
     get velocity() {

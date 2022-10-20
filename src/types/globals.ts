@@ -1,3 +1,5 @@
+export type HexColour = `#${string}`;
+
 export const EVENT_GAME_END = 'gameEnd';
 export interface GameEndEventParams {
     time: number;

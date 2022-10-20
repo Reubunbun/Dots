@@ -27,9 +27,12 @@
         </div>
         <div id="modal-backdrop">
             <div class="modal" id="modal-change-stats">
-                <h2>Change Stats:</h2>
+                <h2>Change Stats</h2>
                 <div class="container-stats">
-                    <div></div>
+                    <div class="container-colour">
+                        <p>Enter Hex Colour Value:</p>
+                        <input type="text" value="#0000FF" id="input-change-colour">
+                    </div>
                     <div>
                         <div class="container-slider">
                             <p>Size:</p>
@@ -41,16 +44,19 @@
                             >
                         </div>
                     </div>
-                    <div>
-                        <div class="container-stats-meter">
-                            <span id="stats-meter"></span>
+                    <div class="container-shared-sliders">
+                        <div class="container-meter-and-text">
+                            <p>Points Remaining:</p>
+                            <div class="container-stats-meter">
+                                <span id="stats-meter"></span>
+                            </div>
                         </div>
                         <div class="container-slider">
                             <p>Speed:</p>
                             <input
                                 type="range"
                                 id="slider-speed"
-                                min="0" max="1" value="0.4" step="0.2"
+                                min="0" max="1" value="0.5" step="0.1"
                                 onkeydown="return false;"
                             >
                         </div>
@@ -59,7 +65,8 @@
                             <input
                                 type="range"
                                 id="slider-inv-time"
-                                min="0" max="1" value="0.4" step="0.2"
+                                min="0" max="1" value="0.5" step="0.1"
+                                onkeydown="return false;"
                             >
                         </div>
                         <div class="container-slider">
@@ -67,8 +74,12 @@
                             <input
                                 type="range"
                                 id="slider-charges-needed"
-                                min="0" max="1" value="0.4" step="0.2"
+                                min="0" max="1" value="0.5" step="0.1"
+                                onkeydown="return false;"
                             >
+                        </div>
+                        <div class="container-done-btn">
+                            <button id="btn-stats-done" class="btn-restart"> Done </button>
                         </div>
                     </div>
                     <div id="container-stats-canvas">

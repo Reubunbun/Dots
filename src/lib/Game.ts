@@ -5,7 +5,9 @@ import {
     EVENT_GAME_END,
     EVENT_POWER_CHANGE,
     EVENT_SCORE_CHANGE,
+    HexColour,
 } from '../types/globals';
+import Storage from './Storage';
 import Vector from './helpers/Vector';
 import lerp from './helpers/Lerp';
 import Player from './entities/Player';
@@ -13,7 +15,6 @@ import Obstacle from './entities/Obstacle';
 import Collectable from './entities/Collectable';
 import Particle from  './entities/Particle';
 import Entity from './entities/Abstract';
-import Colour from './helpers/Colour';
 
 class Game {
     private static readonly MIN_SPAWN_DIST_FROM_PLAYER = 200;
@@ -30,6 +31,9 @@ class Game {
     private static readonly PREV_STAGE_WIDTH = Game.PREV_REF_WIDTH - (Game.BORDER_WIDTH * 2);
     private static readonly PREV_STAGE_HEIGHT = Game.PREV_REF_HEIGHT - (Game.BORDER_WIDTH * 2);
 
+    private static readonly PREV_COLLECTABLE_RESPAWN_TIME = 1.5;
+
+    private _storage: Storage;
     private _ended: boolean;
     private _timeGameStart: number;
     private _score: number;
@@ -39,10 +43,6 @@ class Game {
     private _times: Array<number>;
     private _collectable: Collectable;
     private _player: Player;
-    private _playerSpeed: number = Player.getDefaultSpeed();
-    private _playerRadius: number = Player.getDefaultRadius();
-    private _playerInvTime: number = Player.getDefaultPowerupTime();
-    private _playerChargesNeeded: number = Player.getDefaultChargesNeeded();
     private _gameAnimationId: number;
     private _lastFrameTime: number;
     private _gameCanvas: HTMLCanvasElement;
@@ -51,9 +51,12 @@ class Game {
     private _previewCanvas: HTMLCanvasElement;
     private _previewCtx: CanvasRenderingContext2D;
     private _previewAnimationId: number;
+    private _previewCollectables: Set<{collectable: Collectable, timeToRespawn: number}>;
+    private _previewParticles: Set<Particle>;
 
     constructor(gameCanvas: HTMLCanvasElement)
     {
+        this._storage = new Storage();
         this._gameCanvas = gameCanvas;
         this._gameCtx = gameCanvas.getContext('2d');
     }
@@ -134,11 +137,11 @@ class Game {
 
         this._player = new Player(
             new Vector(Game.STAGE_WIDTH / 2, Game.STAGE_HEIGHT / 2),
-            new Colour(0, 0, 255, 1),
-            this._playerRadius,
-            this._playerSpeed,
-            this._playerInvTime,
-            this._playerChargesNeeded,
+            this._storage.playerColour,
+            this._storage.playerSize,
+            this._storage.playerSpeed,
+            this._storage.playerInvTime,
+            this._storage.playerChargesNeeded,
         );
 
         const firstObstacle = new Obstacle(
@@ -423,12 +426,24 @@ class Game {
 
         this._player = new Player(
             new Vector(Game.PREV_STAGE_WIDTH / 2, Game.PREV_STAGE_HEIGHT / 2),
-            new Colour(0, 0, 255, 1),
-            this._playerRadius,
-            this._playerSpeed,
-            this._playerInvTime,
-            this._playerChargesNeeded,
+            this._storage.playerColour,
+            this._storage.playerSize,
+            this._storage.playerSpeed,
+            this._storage.playerInvTime,
+            this._storage.playerChargesNeeded,
         );
+
+        this._previewCollectables = new Set();
+        for (let i = 0; i < 5; i++) {
+            this._previewCollectables.add({
+                collectable: new Collectable(new Vector(
+                    (Game.PREV_REF_WIDTH / 5) * (i + 1) - ((Game.PREV_REF_WIDTH / 5)) / 2,
+                    Game.PREV_REF_HEIGHT * 0.25,
+                )),
+                timeToRespawn: 0,
+            });
+        }
+        this._previewParticles = new Set();
 
         this._previewAnimationId = requestAnimationFrame(this._nextPreviewFrame.bind(this));
     }
@@ -438,24 +453,59 @@ class Game {
         cancelAnimationFrame(this._previewAnimationId);
     }
 
-    updatePreviewSize(percent: number) : void
+    updatePlayerSize(percent: number) : void
     {
-        this._playerRadius = this._player.updatePreviewRadius(percent);
+        this._player.updatePreviewRadius(percent);
+        this._storage.playerSize = percent;
     }
 
-    updatePreviewSpeed(percent: number) : void
+    updatePlayerSpeed(percent: number) : void
     {
-        this._playerSpeed = this._player.updatePreviewSpeed(percent);
+        this._player.updatePreviewSpeed(percent);
+        this._storage.playerSpeed = percent;
     }
 
-    updatePreviewInvTime(percent: number) : void
+    updatePlayerInvTime(percent: number) : void
     {
-        this._playerInvTime = this._player.updatePreviewInvTime(percent);
+        this._player.updatePreviewInvTime(percent);
+        this._storage.playerInvTime = percent;
     }
 
     updatePreviewChargesNeeded(percent: number) : void
     {
-        this._playerChargesNeeded = this._player.updatePreviewChargesNeeded(1 - percent);
+        this._player.updatePreviewChargesNeeded(1 - percent);
+        this._storage.playerChargesNeeded = percent;
+    }
+
+    updatePreviewColour(hex: HexColour) : void
+    {
+        this._player.updatePreviewColour(hex);
+        this._storage.playerColour = hex;
+    }
+
+    getStoredPlayerSize() : number
+    {
+        return this._storage.playerSize;
+    }
+
+    getStoredPlayerSpeed() : number
+    {
+        return this._storage.playerSpeed;
+    }
+
+    getStoredPlayerInvTime() : number
+    {
+        return this._storage.playerInvTime;
+    }
+
+    getStoredPlayerChargesNeeded() : number
+    {
+        return this._storage.playerChargesNeeded;
+    }
+
+    getStoredPlayerColour() : HexColour
+    {
+        return this._storage.playerColour;
     }
 
     private _nextPreviewFrame(frameTime: number) : void
@@ -487,9 +537,93 @@ class Game {
         );
         this._previewCtx.strokeStyle = 'none';
 
-        const allEntities = [this._player];
-        for (const entity of allEntities) {
-            entity.nextFrame(
+        this._player.nextFrame(
+            deltaTime,
+            Game.PREV_BORDER_WIDTH,
+            Game.PREV_STAGE_WIDTH + 5,
+            Game.PREV_BORDER_WIDTH,
+            Game.PREV_STAGE_HEIGHT + 5,
+        );
+
+        this._previewCtx.fillStyle = this._player.colour;
+        this._previewCtx.beginPath();
+        this._previewCtx.arc(
+            this._player.x,
+            this._player.y,
+            this._player.radius,
+            0,
+            2 * Math.PI,
+        );
+        this._previewCtx.fill();
+
+        const {r, g, b, a} = this._player.getColourAsObject();
+        const maxTailWidth = this._player.radius * 2;
+        const minTailWidth = 2;
+        for (let i = this._player.trail.length - 1; i >= 0 ; i--) {
+            this._previewCtx.lineWidth = lerp(
+                maxTailWidth,
+                minTailWidth,
+                (this._player.trail.length - i) / this._player.trail.length,
+                'ease',
+            );
+
+            this._previewCtx.beginPath();
+
+            if (i === (this._player.trail.length - 1)) {
+                const pointFrom = this._player.position;
+                const { Position: pointTo, Opacity } = this._player.trail[i];
+                this._previewCtx.strokeStyle = `rgb(${r}, ${g}, ${b}, ${Opacity * a})`;
+                this._previewCtx.moveTo(pointFrom.x, pointFrom.y);
+                this._previewCtx.lineTo(pointTo.x, pointTo.y);
+            } else {
+                const { Position: pointFrom } = this._player.trail[i + 1];
+                const { Position: pointTo, Opacity } = this._player.trail[i];
+                this._previewCtx.strokeStyle = `rgb(${r}, ${g}, ${b}, ${Opacity * a})`;
+                this._previewCtx.moveTo(pointFrom.x, pointFrom.y);
+                this._previewCtx.lineTo(pointTo.x, pointTo.y);
+            }
+
+            this._previewCtx.stroke();
+        }
+
+        for (const collectableObj of this._previewCollectables) {
+            const { collectable, timeToRespawn } = collectableObj;
+
+            if (timeToRespawn !== 0) {
+                collectableObj.timeToRespawn = Math.max(0, timeToRespawn - deltaTime);
+                continue;
+            }
+
+            if (this._player.isCollidingWith(collectable)) {
+                this._player.addCharge();
+
+                for (let i = 0; i < 5; i++) {
+                    this._previewParticles.add(new Particle(
+                        collectable.position,
+                        collectable.getColourAsObject(),
+                        collectable.radius,
+                        this._player.speed,
+                        this._player.velocity
+                    ));
+                }
+
+                collectableObj.timeToRespawn = Game.PREV_COLLECTABLE_RESPAWN_TIME;
+            }
+
+            this._previewCtx.fillStyle = collectable.colour;
+            this._previewCtx.beginPath();
+            this._previewCtx.arc(
+                collectable.x,
+                collectable.y,
+                collectable.radius,
+                0,
+                2 * Math.PI,
+            );
+            this._previewCtx.fill();
+        }
+
+        for (const particle of this._previewParticles) {
+            particle.nextFrame(
                 deltaTime,
                 Game.PREV_BORDER_WIDTH,
                 Game.PREV_STAGE_WIDTH + 5,
@@ -497,46 +631,20 @@ class Game {
                 Game.PREV_STAGE_HEIGHT + 5,
             );
 
-            this._previewCtx.fillStyle = entity.colour;
+            if (particle.shouldDespawn()) {
+                this._previewParticles.delete(particle);
+            }
+
+            this._previewCtx.fillStyle = particle.colour;
             this._previewCtx.beginPath();
             this._previewCtx.arc(
-                entity.x,
-                entity.y,
-                entity.radius,
+                particle.x,
+                particle.y,
+                particle.radius,
                 0,
                 2 * Math.PI,
             );
             this._previewCtx.fill();
-
-            const {r, g, b, a} = entity.getColourAsObject();
-            const maxTailWidth = entity.radius * 2;
-            const minTailWidth = 2;
-            for (let i = entity.trail.length - 1; i >= 0 ; i--) {
-                this._previewCtx.lineWidth = lerp(
-                    maxTailWidth,
-                    minTailWidth,
-                    (entity.trail.length - i) / entity.trail.length,
-                    'ease',
-                );
-
-                this._previewCtx.beginPath();
-
-                if (i === (entity.trail.length - 1)) {
-                    const pointFrom = entity.position;
-                    const { Position: pointTo, Opacity } = entity.trail[i];
-                    this._previewCtx.strokeStyle = `rgb(${r}, ${g}, ${b}, ${Opacity * a})`;
-                    this._previewCtx.moveTo(pointFrom.x, pointFrom.y);
-                    this._previewCtx.lineTo(pointTo.x, pointTo.y);
-                } else {
-                    const { Position: pointFrom } = entity.trail[i + 1];
-                    const { Position: pointTo, Opacity } = entity.trail[i];
-                    this._previewCtx.strokeStyle = `rgb(${r}, ${g}, ${b}, ${Opacity * a})`;
-                    this._previewCtx.moveTo(pointFrom.x, pointFrom.y);
-                    this._previewCtx.lineTo(pointTo.x, pointTo.y);
-                }
-
-                this._previewCtx.stroke();
-            }
         }
 
         this._previewAnimationId = requestAnimationFrame(this._nextPreviewFrame.bind(this));

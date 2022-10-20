@@ -5,6 +5,7 @@ import {
     EVENT_GAME_END,
     EVENT_POWER_CHANGE,
     EVENT_SCORE_CHANGE,
+    HexColour,
 } from './types/globals';
 declare global {
     interface DocumentEventMap {
@@ -28,7 +29,9 @@ const resultsTimeText = document.getElementById('results-time') as HTMLSpanEleme
 const resultsScoreText = document.getElementById('results-score') as HTMLSpanElement;
 const btnChangeStats = document.getElementById('btn-change-stats') as HTMLButtonElement;
 const modalChangeStats = document.getElementById('modal-change-stats') as HTMLDivElement;
+const inputChangeColour = document.getElementById('input-change-colour') as HTMLInputElement;
 const sliderSize = document.getElementById('slider-size') as HTMLInputElement;
+const statsMeter = document.getElementById('stats-meter') as HTMLSpanElement;
 const sliderSpeed = document.getElementById('slider-speed') as HTMLInputElement;
 const sliderInvTime = document.getElementById('slider-inv-time') as HTMLInputElement;
 const sliderChargesNeeded = document.getElementById('slider-charges-needed') as HTMLInputElement;
@@ -36,13 +39,43 @@ const canvasPreview = document.getElementById('stats-canvas') as HTMLCanvasEleme
 const containerCanvasPreivew = document.getElementById('container-stats-canvas') as HTMLDivElement;
 const restartBtns = document.querySelectorAll('.btn-restart') as NodeListOf<HTMLButtonElement>;
 
+const game = new Game(canvas);
+
 const modals: Array<HTMLDivElement> = [
     modalResults,
     modalChangeStats,
 ];
 modalBackdrop.innerHTML = '';
 
-let game = new Game(canvas);
+let playerSize = game.getStoredPlayerSize();
+sliderSize.value = String(playerSize);
+
+const sharedSliders: Array<HTMLInputElement> = [
+    sliderSpeed,
+    sliderInvTime,
+    sliderChargesNeeded,
+];
+
+const DEFAULT_SHARED = 0.5;
+const MAX_SHARED = (DEFAULT_SHARED * sharedSliders.length);
+
+let playerSpeed = game.getStoredPlayerSpeed();
+sliderSpeed.value = String(playerSpeed);
+let playerInvTime = game.getStoredPlayerInvTime();
+sliderInvTime.value = String(playerInvTime);
+let playerChargesNeeded = game.getStoredPlayerChargesNeeded();
+sliderChargesNeeded.value = String(playerChargesNeeded);
+inputChangeColour.value = game.getStoredPlayerColour();
+
+const updateStatsMeter = () => {
+    const currSharedValue = sharedSliders.reduce(
+        (prev, curr) => prev + Number(curr.value),
+        0,
+    );
+    const percentUsed = currSharedValue / MAX_SHARED;
+    statsMeter.style.width = `${(1 - percentUsed) * 100}%`;
+};
+updateStatsMeter();
 
 // Click restart button
 restartBtns.forEach(el => el.addEventListener('click', () => {
@@ -73,17 +106,61 @@ btnChangeStats.addEventListener('click', () => {
         game.resizePreview(width * 0.98, height);
     }, 5);
 });
+
+// Stats sliders
 sliderSize.addEventListener('input', e => {
-    game.updatePreviewSize(+(e.target as HTMLInputElement).value);
+    const newSizeVal = +(e.target as HTMLInputElement).value;
+    game.updatePlayerSize(newSizeVal);
+    playerSize = newSizeVal;
 });
 sliderSpeed.addEventListener('input', e => {
-    game.updatePreviewSpeed(+(e.target as HTMLInputElement).value);
+    const newSpeedVal = +(e.target as HTMLInputElement).value;
+    if (newSpeedVal + playerInvTime + playerChargesNeeded > MAX_SHARED) {
+        sliderSpeed.value = String(playerSpeed);
+        return;
+    }
+
+    game.updatePlayerSpeed(newSpeedVal);
+    playerSpeed = newSpeedVal;
+    updateStatsMeter();
 });
 sliderInvTime.addEventListener('input', e => {
-    game.updatePreviewInvTime(+(e.target as HTMLInputElement).value);
+    const newInvTime = +(e.target as HTMLInputElement).value;
+    if (newInvTime + playerSpeed + playerChargesNeeded > MAX_SHARED) {
+        sliderInvTime.value = String(playerInvTime);
+        return;
+    }
+
+    game.updatePlayerInvTime(newInvTime);
+    playerInvTime = newInvTime;
+    updateStatsMeter();
 });
 sliderChargesNeeded.addEventListener('input', e => {
-    game.updatePreviewChargesNeeded(+(e.target as HTMLInputElement).value);
+    const newChargesNeeded = +(e.target as HTMLInputElement).value;
+    if (newChargesNeeded + playerSpeed + playerInvTime > MAX_SHARED) {
+        sliderChargesNeeded.value = String(playerChargesNeeded);
+        return;
+    }
+
+    game.updatePreviewChargesNeeded(newChargesNeeded);
+    playerChargesNeeded = newChargesNeeded;
+    updateStatsMeter();
+});
+
+inputChangeColour.addEventListener('input', e => {
+    const input = (e.target as HTMLInputElement).value;
+
+    if (!input) {
+        return;
+    }
+
+    let strHex = input;
+    if (!input.startsWith('#')) {
+        strHex = `#${input}`;
+    }
+
+    console.log('setting', strHex);
+    game.updatePreviewColour(strHex as HexColour);
 });
 
 // Click backdrop of modal
