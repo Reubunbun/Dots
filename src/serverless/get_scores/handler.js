@@ -7,7 +7,7 @@ let connDB;
 
 module.exports.handler = async function(event) {
     try {
-        return await submitScore(event);
+        return await getScores(event);
     } catch (err) {
         console.log(err);
         return {
@@ -24,18 +24,28 @@ module.exports.handler = async function(event) {
     }
 };
 
-const submitScore = async event => {
-    if (!event.body || !event.body.Score || !event.body.Time || !event.body.Name) {
+const getScores = async event => {
+    if (!event.queryStringParameters || !event.queryStringParameters.limit) {
         return {
             statusCode: 400,
             headers: {
                 'Access-Control-Allow-Origin': '*',
             },
-            body: JSON.stringify({ message: 'Missing body params' }),
+            body: JSON.stringify({ message: 'Missing query params' }),
         };
     }
 
-    const {body: { Score, Time, Name }} = event;
+    if (event.queryStringParameters.orderBy && event.queryStringParameters.orderBy !== 'TimeCreated') {
+        return {
+            statusCode: 400,
+            headers: {
+                'Access-Control-Allow-Origin': '*',
+            },
+            body: JSON.stringify({ message: 'Can only order by time created or none' }),
+        };
+    }
+
+    const {queryStringParameters: {limit, orderBy}} = event;
 
     if (!connDB) {
         connDB = mysql.createConnection({
@@ -49,22 +59,28 @@ const submitScore = async event => {
         });
     }
 
-    const query = knex('Scores')
-        .insert({
-            Name,
-            Score,
-            TimeTaken: Time,
-            TimeSubmitted: Math.floor(Date.now() / 1000),
-        })
-        .toString();
+    const query = knex('Scores').select();
 
-    await new Promise((res, rej) => connDB.query(query, (err) => err ? rej(err) : res()))
+    if (orderBy === 'TimeCreated') {
+        query.orderBy('TimeSubmitted');
+    } else {
+        query.orderBy('Score', 'TimeTaken');
+    }
+
+    query.limit(limit);
+
+    const results = await new Promise(
+        (res, rej) => connDB.query(
+            query.toString(),
+            (err, rows) => err ? rej(err) : res(rows),
+        ),
+    );
 
     return {
         statusCode: 200,
         headers: {
             'Access-Control-Allow-Origin': '*',
         },
-        body: JSON.stringify({}),
+        body: JSON.stringify({ results }),
     };
 };

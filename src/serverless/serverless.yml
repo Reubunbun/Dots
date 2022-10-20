@@ -30,3 +30,24 @@ functions:
             headers:
               - accept
               - content-type
+
+  get_scores:
+    handler: get_scores/handler.handler
+    timeout: 10
+    memorySize: 128
+    environment:
+      DB_HOST: ${self:custom.envpath.DB_HOST}
+      DB_USER: ${self:custom.envpath.DB_USER}
+      DB_PASS: ${self:custom.envpath.DB_PASS}
+      DB_PORT: ${self:custom.envpath.DB_PORT}
+      DB_NAME: ${self:custom.envpath.DB_NAME}
+    events:
+      - http:
+          path: /scores
+          method: GET
+          integration: lambda-proxy
+          cors:
+            origin: "*"
+            headers:
+              - accept
+              - content-type
