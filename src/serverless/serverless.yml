@@ -7,7 +7,7 @@ provider:
   region: eu-west-1
 
 custom:
-  envpath: "${file(./serverless.env.yml):${opt:stage, self:provider.stage}}"
+  envpath: "${file(./serverless.env-${opt:stage, self:provider.stage}.yml)}"
 
 functions:
   submit_score:
