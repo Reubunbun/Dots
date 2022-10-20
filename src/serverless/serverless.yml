@@ -1,0 +1,32 @@
+service: dots-game
+
+provider:
+  name: aws
+  runtime: nodejs16.x
+  stage: prod
+  region: eu-west-1
+
+custom:
+  envpath: "${file(./serverless.env.yml):${opt:stage, self:provider.stage}}"
+
+functions:
+  submit_score:
+    handler: submit_score/handler.handler
+    timeout: 10
+    memorySize: 128
+    environment:
+      DB_HOST: ${self:custom.envpath.DB_HOST}
+      DB_USER: ${self:custom.envpath.DB_USER}
+      DB_PASS: ${self:custom.envpath.DB_PASS}
+      DB_PORT: ${self:custom.envpath.DB_PORT}
+      DB_NAME: ${self:custom.envpath.DB_NAME}
+    events:
+      - http:
+          path: /scores
+          method: POST
+          integration: lambda-proxy
+          cors:
+            origin: "*"
+            headers:
+              - accept
+              - content-type
