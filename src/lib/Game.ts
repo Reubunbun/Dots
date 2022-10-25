@@ -38,6 +38,7 @@ class Game {
     private _timeGameStart: number;
     private _score: number;
     private _collectablesCollected: number;
+    private _timeTaken: number;
     private _allObstacles: Set<Obstacle>;
     private _allParticles: Set<Particle>;
     private _times: Array<number>;
@@ -156,6 +157,14 @@ class Game {
         this._gameAnimationId = requestAnimationFrame(this._nextGameFrame.bind(this));
     }
 
+    getGameResults()
+    {
+        return {
+            Score: this._score,
+            TimeTaken: this._timeTaken,
+        };
+    }
+
     stopGame() : void
     {
         cancelAnimationFrame(this._gameAnimationId);
@@ -258,12 +267,13 @@ class Game {
                             ));
                         }
 
+                        this._timeTaken = Date.now() - this._timeGameStart;
                         document.dispatchEvent(new CustomEvent<GameEndEventParams>(
                             EVENT_GAME_END,
                             {
                                 detail: {
                                     score: this._score,
-                                    time: Date.now() - this._timeGameStart,
+                                    time: this._timeTaken,
                                     collected: this._collectablesCollected,
                                 },
                                 bubbles: true,

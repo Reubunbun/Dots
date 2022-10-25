@@ -5,6 +5,7 @@ import {
     EVENT_GAME_END,
     EVENT_POWER_CHANGE,
     EVENT_SCORE_CHANGE,
+    API_URL,
     HexColour,
 } from './types/globals';
 declare global {
@@ -27,6 +28,8 @@ const modalResults = document.getElementById('modal-results-screen') as HTMLDivE
 const resultsTotalText = document.getElementById('results-collected') as HTMLSpanElement;
 const resultsTimeText = document.getElementById('results-time') as HTMLSpanElement;
 const resultsScoreText = document.getElementById('results-score') as HTMLSpanElement;
+const resultsInput = document.getElementById('input-name') as HTMLInputElement;
+const btnResultsSubmit = document.getElementById('btn-submit') as HTMLButtonElement;
 const btnChangeStats = document.getElementById('btn-change-stats') as HTMLButtonElement;
 const modalChangeStats = document.getElementById('modal-change-stats') as HTMLDivElement;
 const inputChangeColour = document.getElementById('input-change-colour') as HTMLInputElement;
@@ -205,6 +208,29 @@ document.addEventListener(EVENT_GAME_END, e => {
         modalBackdrop.style.backgroundColor = 'rgb(0, 0, 0, 0.8)';
         modalResults.style.opacity = '1';
     }, 5);
+});
+
+// Submit score
+btnResultsSubmit.addEventListener('click', () => {
+    const { Score, TimeTaken } = game.getGameResults();
+    const name = resultsInput.value || 'Anon';
+    fetch(
+        API_URL,
+        {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                Score: Score,
+                Time: Math.floor(TimeTaken / 1000),
+                Name: name,
+            }),
+        },
+    )
+        .then(console.log)
+        .catch(console.error);
 });
 
 // Screen resize

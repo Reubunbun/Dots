@@ -20,12 +20,16 @@ module.exports.handler = async function(event) {
     } finally {
         if (connDB) {
             connDB.destroy();
+            connDB = undefined;
         }
     }
 };
 
 const submitScore = async event => {
-    if (!event.body || !event.body.Score || !event.body.Time || !event.body.Name) {
+    const body = JSON.parse(event.body);
+    const { Score, Time, Name } = body;
+
+    if (Score == null || Time == null || Name == null) {
         return {
             statusCode: 400,
             headers: {
@@ -35,13 +39,12 @@ const submitScore = async event => {
         };
     }
 
-    const {body: { Score, Time, Name }} = event;
 
     if (!connDB) {
         connDB = mysql.createConnection({
             host: process.env.DB_HOST,
             user: process.env.DB_USER,
-            password: process.env.DB_USER,
+            password: process.env.DB_PASS,
             port: process.env.DB_PORT,
             database: process.env.DB_NAME,
             charset: 'utf8_general_ci',

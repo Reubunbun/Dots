@@ -17,3 +17,6 @@ export const EVENT_SCORE_CHANGE = 'scoreChange';
 export interface ScoreChangeEventParams {
     score: number;
 };
+
+
+export const API_URL = 'https://ojzn0sdtj0.execute-api.eu-west-1.amazonaws.com/prod/scores';

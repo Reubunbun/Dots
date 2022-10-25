@@ -35,7 +35,10 @@ const getScores = async event => {
         };
     }
 
-    if (event.queryStringParameters.orderBy && event.queryStringParameters.orderBy !== 'TimeCreated') {
+    if (
+        event.queryStringParameters.orderBy &&
+        event.queryStringParameters.orderBy !== 'TimeCreated'
+    ) {
         return {
             statusCode: 400,
             headers: {
@@ -51,7 +54,7 @@ const getScores = async event => {
         connDB = mysql.createConnection({
             host: process.env.DB_HOST,
             user: process.env.DB_USER,
-            password: process.env.DB_USER,
+            password: process.env.DB_PASS,
             port: process.env.DB_PORT,
             database: process.env.DB_NAME,
             charset: 'utf8_general_ci',
