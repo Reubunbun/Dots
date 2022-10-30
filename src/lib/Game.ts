@@ -484,7 +484,7 @@ class Game {
     updatePreviewChargesNeeded(percent: number) : void
     {
         this._player.updatePreviewChargesNeeded(1 - percent);
-        this._storage.playerChargesNeeded = percent;
+        this._storage.playerChargesNeeded = 1 - percent;
     }
 
     updatePreviewColour(hex: HexColour) : void

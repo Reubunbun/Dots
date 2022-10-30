@@ -15,7 +15,7 @@ class Player extends Entity {
     private static readonly MIN_POWERUP_TIME = 1.5;
     private static readonly MAX_POWERUP_TIME = 5;
 
-    private static readonly MIN_CHARGES_NEEDED = 5;
+    private static readonly MIN_CHARGES_NEEDED = 4;
     private static readonly MAX_CHARGES_NEEDED = 10;
 
     private static readonly MAX_VELOCITY = 5;
@@ -107,11 +107,11 @@ class Player extends Entity {
             invTime,
         );
         this._timePerPowerupColour = this._powerupTime / Player.POWERUP_COLOUR_ROTATIONS;
-        this._chargesNeeded = lerp(
+        this._chargesNeeded = Math.round(lerp(
             Player.MIN_CHARGES_NEEDED,
             Player.MAX_CHARGES_NEEDED,
             chargesNeeded,
-        );
+        ));
     }
 
     nextFrame(
