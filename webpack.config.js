@@ -11,7 +11,7 @@ const stylesHandler = 'style-loader';
 
 
 const config = {
-    entry: './src/index.ts',
+    entry: './src/dots-game/index.ts',
     output: {
         path: path.resolve(__dirname, 'dist'),
     },
@@ -55,8 +55,8 @@ const config = {
 module.exports = () => {
     if (isProduction) {
         config.mode = 'production';
-        
-        
+
+
     } else {
         config.mode = 'development';
     }
