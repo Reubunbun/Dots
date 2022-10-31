@@ -40,6 +40,13 @@ const sliderInvTime = document.getElementById('slider-inv-time') as HTMLInputEle
 const sliderChargesNeeded = document.getElementById('slider-charges-needed') as HTMLInputElement;
 const canvasPreview = document.getElementById('stats-canvas') as HTMLCanvasElement;
 const containerCanvasPreivew = document.getElementById('container-stats-canvas') as HTMLDivElement;
+const btnLeaderboard = document.getElementById('btn-leaderboard') as HTMLButtonElement;
+const modalLeaderboard = document.getElementById('modal-leaderboard') as HTMLDivElement;
+const textLeaderboardLoad = document.getElementById('text-leaderboard-load') as HTMLParagraphElement;
+const tableLeaderboard = document.getElementById('table-leaderboard') as HTMLTableElement;
+const tableBodyLeaderboard = document.getElementById('leaderboard-table-body') as HTMLBodyElement;
+const btnScoreBack = document.getElementById('btn-score-back') as HTMLButtonElement;
+const btnScoreNext = document.getElementById('btn-score-next') as HTMLButtonElement;
 const restartBtns = document.querySelectorAll('.btn-restart') as NodeListOf<HTMLButtonElement>;
 
 const game = new Game(canvas);
@@ -47,6 +54,7 @@ const game = new Game(canvas);
 const modals: Array<HTMLDivElement> = [
     modalResults,
     modalChangeStats,
+    modalLeaderboard,
 ];
 modalBackdrop.innerHTML = '';
 
@@ -162,8 +170,75 @@ inputChangeColour.addEventListener('input', e => {
         strHex = `#${input}`;
     }
 
-    console.log('setting', strHex);
     game.updatePreviewColour(strHex as HexColour);
+});
+
+// Click show leaderboard
+let leaderboardOffset = 0;
+const LEADERBOARD_PAGE_SIZE = 20;
+
+const cbFetchLeaderboard = () => {
+    fetch(`${API_URL}?limit=${LEADERBOARD_PAGE_SIZE}&offset=${leaderboardOffset}`)
+        .then(response => response.json())
+        .then(({ results }) => {
+            if (!results.length) {
+                leaderboardOffset -= LEADERBOARD_PAGE_SIZE;
+                return;
+            }
+
+            let builtRows = '';
+            for (const i in results) {
+                builtRows += `
+                    <tr>
+                        <td>${leaderboardOffset + Number(i) + 1}</td>
+                        <td>${results[i].Name}</td>
+                        <td>${results[i].Score}</td>
+                        <td>${
+                            new Date(results[i].TimeTaken * 1000)
+                                .toISOString()
+                                .substring(11, 19)
+                        }</td>
+                        <td>${
+                            new Date(results[i].TimeSubmitted * 1000).toLocaleString()
+                        }</td>
+                    </tr>
+                `;
+            }
+
+            textLeaderboardLoad.style.display = 'none';
+            tableLeaderboard.style.display = 'block';
+            tableBodyLeaderboard.innerHTML = builtRows;
+    })
+    .catch(console.error);
+};
+const cbShowLeaderboard = () => {
+    game.stopGame();
+    powerMeter.style.width = '0%';
+    currentScore.innerText = '0';
+
+    modalBackdrop.appendChild(modalLeaderboard);
+    setTimeout(() => {
+        modalBackdrop.style.pointerEvents = 'all';
+        modalBackdrop.style.backgroundColor = 'rgb(0, 0, 0, 0.5)';
+        modalLeaderboard.style.opacity = '1';
+        cbFetchLeaderboard();
+    }, 5);
+}
+btnLeaderboard.addEventListener('click', cbShowLeaderboard);
+
+btnScoreNext.addEventListener('click', () => {
+    leaderboardOffset += LEADERBOARD_PAGE_SIZE;
+    modalLeaderboard.scroll({ top: 0, behavior: 'smooth' });
+    cbFetchLeaderboard();
+});
+btnScoreBack.addEventListener('click', () => {
+    if (leaderboardOffset === 0) {
+        return;
+    }
+
+    leaderboardOffset = Math.max(0, leaderboardOffset - LEADERBOARD_PAGE_SIZE);
+    modalLeaderboard.scroll({ top: 0, behavior: 'smooth' });
+    cbFetchLeaderboard();
 });
 
 // Click backdrop of modal
@@ -229,7 +304,14 @@ btnResultsSubmit.addEventListener('click', () => {
             }),
         },
     )
-        .then(console.log)
+        .then(() => {
+            modalResults.style.opacity = '0';
+            modalBackdrop.style.backgroundColor = 'rgb(0, 0, 0, 0)';
+            modalBackdrop.style.pointerEvents = 'none';
+            modalBackdrop.innerHTML = '';
+            leaderboardOffset = 0;
+            setTimeout(cbShowLeaderboard, 5);
+        })
         .catch(console.error);
 });
 

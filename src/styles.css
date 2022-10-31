@@ -13,7 +13,7 @@ body {
     height: 100vh;
 }
 
-p, h2 {
+p, h2, table {
     color: rgb(38, 215, 228);
     font-family: 'Work Sans', sans-serif;
 }
@@ -252,6 +252,62 @@ button:hover {
     justify-content: center;
 }
 
+::-webkit-scrollbar {
+    width: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: black;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgb(38, 215, 228);;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgb(38, 215, 228);;
+}
+
+#modal-leaderboard {
+    justify-content: start;
+    height: 80vh;
+    width: 60vw;
+    gap: 1rem;
+    overflow-y: scroll;
+}
+
+#modal-leaderboard h2 {
+    margin-top: 2.5rem;
+}
+#table-leaderboard {
+    display: none;
+}
+
+table {
+    color: rgb(38, 215, 228);
+}
+table, th, td {
+    border: 1px solid rgb(38, 215, 228);
+    border-collapse: collapse;
+}
+table th, table td {
+    padding: .5rem;
+}
+
+.container-paginator {
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+}
+.container-paginator button {
+    padding-top: .6rem;
+    padding-bottom: .6rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
 
 /*  https://www.cssportal.com/style-input-range/
     sliders

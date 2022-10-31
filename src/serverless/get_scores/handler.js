@@ -20,6 +20,7 @@ module.exports.handler = async function(event) {
     } finally {
         if (connDB) {
             connDB.destroy();
+            connDB = undefined;
         }
     }
 };
@@ -48,7 +49,7 @@ const getScores = async event => {
         };
     }
 
-    const {queryStringParameters: {limit, orderBy}} = event;
+    const {queryStringParameters: {limit, offset, orderBy}} = event;
 
     if (!connDB) {
         connDB = mysql.createConnection({
@@ -67,10 +68,14 @@ const getScores = async event => {
     if (orderBy === 'TimeCreated') {
         query.orderBy('TimeSubmitted');
     } else {
-        query.orderBy('Score', 'TimeTaken');
+        query
+            .orderBy('Score', 'desc')
+            .orderBy('TimeTaken', 'asc');
     }
 
-    query.limit(limit);
+    query
+        .limit(limit)
+        .offset(offset);
 
     const results = await new Promise(
         (res, rej) => connDB.query(
