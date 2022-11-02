@@ -141,6 +141,7 @@ class Game {
         this._score = 0;
         this._scoreMultiplier = 0;
         this._collectablesCollected = 0;
+        this._scoreText = null;
         this._allObstacles = new Set<Obstacle>();
         this._allParticles = new Set<Particle>();
 
