@@ -174,6 +174,11 @@ class Game {
         };
     }
 
+    hasEnded() : boolean
+    {
+        return this._ended;
+    }
+
     stopGame() : void
     {
         cancelAnimationFrame(this._gameAnimationId);

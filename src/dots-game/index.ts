@@ -104,11 +104,12 @@ const cbRestart = () => {
 restartBtns.forEach(el => el.addEventListener('click', cbRestart));
 window.addEventListener('keydown', e => {
     if (
+        game.hasEnded() &&
+        resultsInput !== document.activeElement &&
         (
             e.code === 'Space' ||
             e.code === 'Enter'
-        ) &&
-        resultsInput !== document.activeElement
+        )
     ) {
         cbRestart();
     }
