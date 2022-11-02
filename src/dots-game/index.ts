@@ -77,7 +77,7 @@ sliderSpeed.value = String(playerSpeed);
 let playerInvTime = game.getStoredPlayerInvTime();
 sliderInvTime.value = String(playerInvTime);
 let playerChargesNeeded = game.getStoredPlayerChargesNeeded();
-sliderChargesNeeded.value = String(1 - playerChargesNeeded);
+sliderChargesNeeded.value = String(playerChargesNeeded);
 inputChangeColour.value = game.getStoredPlayerColour();
 
 const updateStatsMeter = () => {

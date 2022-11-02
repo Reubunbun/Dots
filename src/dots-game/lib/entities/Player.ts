@@ -110,7 +110,7 @@ class Player extends Entity {
         this._chargesNeeded = Math.round(lerp(
             Player.MIN_CHARGES_NEEDED,
             Player.MAX_CHARGES_NEEDED,
-            chargesNeeded,
+            1 - chargesNeeded,
         ));
     }
 
@@ -269,7 +269,7 @@ class Player extends Entity {
             lerp(
                 Player.MIN_CHARGES_NEEDED,
                 Player.MAX_CHARGES_NEEDED,
-                percent,
+                (1 - percent),
             ),
         );
         this._chargesNeeded = newChargesNeeded;
