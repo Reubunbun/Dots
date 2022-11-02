@@ -30,7 +30,7 @@ class Game {
     private static readonly BASE_COLLECT_SCORE = 5;
     private static readonly MAX_COLLECT_CHAIN = 5;
     private static readonly MAX_COLLECT_SCORE = Game.BASE_COLLECT_SCORE * (2 ** Game.MAX_COLLECT_CHAIN);
-    private static readonly TIME_TO_CHAIN = 1.5;
+    private static readonly TIME_TO_CHAIN = 1.85;
 
     private static readonly PREV_BORDER_WIDTH = 1;
     private static readonly PREV_REF_WIDTH = 1020 + (Game.PREV_BORDER_WIDTH * 2);
