@@ -3,7 +3,7 @@ import Vector from '../helpers/Vector';
 import Entity from './Abstract';
 
 class Collectable extends Entity {
-    private static readonly COLOUR = new Colour(144, 200, 0, 1);
+    public static readonly COLOUR = new Colour(144, 200, 0, 1);
     public static readonly RADIUS = 10;
 
     constructor(position: Vector)

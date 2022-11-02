@@ -3,10 +3,10 @@ import Entity from './Abstract';
 import Colour from '../helpers/Colour';
 
 class Obstacle extends Entity {
-    private static readonly COLOUR = new Colour(255, 0, 0, 1);
     private static readonly BASE_SPEED = 130;
     private static readonly SPEED_VARIANCE = 20;
     private static readonly SPAWN_TIME = 1;
+    public static readonly COLOUR = new Colour(255, 0, 0, 1);
     public static readonly RADIUS = 15;
 
     private _spawnFrames: number = Obstacle.SPAWN_TIME;

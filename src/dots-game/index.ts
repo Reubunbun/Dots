@@ -47,6 +47,8 @@ const tableLeaderboard = document.getElementById('table-leaderboard') as HTMLTab
 const tableBodyLeaderboard = document.getElementById('leaderboard-table-body') as HTMLBodyElement;
 const btnScoreBack = document.getElementById('btn-score-back') as HTMLButtonElement;
 const btnScoreNext = document.getElementById('btn-score-next') as HTMLButtonElement;
+const containerScoreBtns = document.getElementById('container-score-btns') as HTMLDivElement;
+const textScoreSubmit = document.getElementById('text-score-submit') as HTMLParagraphElement;
 const restartBtns = document.querySelectorAll('.btn-restart') as NodeListOf<HTMLButtonElement>;
 
 const game = new Game(canvas);
@@ -75,7 +77,7 @@ sliderSpeed.value = String(playerSpeed);
 let playerInvTime = game.getStoredPlayerInvTime();
 sliderInvTime.value = String(playerInvTime);
 let playerChargesNeeded = game.getStoredPlayerChargesNeeded();
-sliderChargesNeeded.value = String(playerChargesNeeded);
+sliderChargesNeeded.value = String(1 - playerChargesNeeded);
 inputChangeColour.value = game.getStoredPlayerColour();
 
 const updateStatsMeter = () => {
@@ -287,6 +289,9 @@ document.addEventListener(EVENT_GAME_END, e => {
 
 // Submit score
 btnResultsSubmit.addEventListener('click', () => {
+    containerScoreBtns.style.display = 'none';
+    textScoreSubmit.style.display = 'block';
+
     const { Score, TimeTaken } = game.getGameResults();
     const name = resultsInput.value || 'Anon';
     fetch(
@@ -305,6 +310,8 @@ btnResultsSubmit.addEventListener('click', () => {
         },
     )
         .then(() => {
+            containerScoreBtns.style.display = 'block';
+            textScoreSubmit.style.display = 'none';
             modalResults.style.opacity = '0';
             modalBackdrop.style.backgroundColor = 'rgb(0, 0, 0, 0)';
             modalBackdrop.style.pointerEvents = 'none';

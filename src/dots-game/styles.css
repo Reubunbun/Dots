@@ -309,6 +309,10 @@ table th, table td {
     padding-right: 1rem;
 }
 
+#text-score-submit {
+    display: none;
+}
+
 /*  https://www.cssportal.com/style-input-range/
     sliders
 */

@@ -10,6 +10,7 @@ class Colour {
     public static readonly PURPLE = new Colour(128, 0, 255, 1);
     public static readonly TEAL = new Colour(0, 255, 255, 1);
     public static readonly ORANGE = new Colour(255, 128, 0, 1);
+    public static readonly WHITE = new Colour(255, 255, 255, 1);
 
     private static readonly HEX_SHORTHAND_RGX = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
     private static readonly HEX_RGX = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i;

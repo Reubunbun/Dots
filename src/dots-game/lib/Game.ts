@@ -14,7 +14,9 @@ import Player from './entities/Player';
 import Obstacle from './entities/Obstacle';
 import Collectable from './entities/Collectable';
 import Particle from  './entities/Particle';
+import ScoreText from './entities/ScoreText';
 import Entity from './entities/Abstract';
+import Colour from './helpers/Colour';
 
 class Game {
     private static readonly MIN_SPAWN_DIST_FROM_PLAYER = 200;
@@ -24,6 +26,11 @@ class Game {
     private static readonly GAME_REF_HEIGHT = 903 + (Game.BORDER_WIDTH * 2);
     private static readonly STAGE_WIDTH = Game.GAME_REF_WIDTH - (Game.BORDER_WIDTH * 2);
     private static readonly STAGE_HEIGHT = Game.GAME_REF_HEIGHT - (Game.BORDER_WIDTH * 2);
+
+    private static readonly BASE_COLLECT_SCORE = 5;
+    private static readonly MAX_COLLECT_CHAIN = 5;
+    private static readonly MAX_COLLECT_SCORE = Game.BASE_COLLECT_SCORE * (2 ** Game.MAX_COLLECT_CHAIN);
+    private static readonly TIME_TO_CHAIN = 1.5;
 
     private static readonly PREV_BORDER_WIDTH = 1;
     private static readonly PREV_REF_WIDTH = 1020 + (Game.PREV_BORDER_WIDTH * 2);
@@ -37,10 +44,12 @@ class Game {
     private _ended: boolean;
     private _timeGameStart: number;
     private _score: number;
+    private _scoreMultiplier: number;
     private _collectablesCollected: number;
     private _timeTaken: number;
     private _allObstacles: Set<Obstacle>;
     private _allParticles: Set<Particle>;
+    private _scoreText: ScoreText | null;
     private _times: Array<number>;
     private _collectable: Collectable;
     private _player: Player;
@@ -132,6 +141,7 @@ class Game {
         this._ended = false;
         this._timeGameStart = Date.now();
         this._score = 0;
+        this._scoreMultiplier = 0;
         this._collectablesCollected = 0;
         this._allObstacles = new Set<Obstacle>();
         this._allParticles = new Set<Particle>();
@@ -242,7 +252,29 @@ class Game {
             if (entity instanceof Obstacle) {
                 if (entity.isCollidingWith(this._player) && !this._ended) {
                     if (this._player.inPowerup()) {
-                        this._increaseScore(20);
+                        if (this._scoreText) {
+                            this._scoreMultiplier = Math.min(
+                                Game.MAX_COLLECT_CHAIN,
+                                this._scoreMultiplier + 1,
+                            );
+                        } else {
+                            this._scoreMultiplier = 0;
+                        }
+
+                        const scoreToAdd = Math.ceil(
+                            (Game.BASE_COLLECT_SCORE * (2 ** this._scoreMultiplier)) * 0.4,
+                        );
+                        this._increaseScore(scoreToAdd);
+                        this._scoreText = new ScoreText(
+                            this._player.position,
+                            `+${scoreToAdd}`,
+                            scoreToAdd,
+                            Game.MAX_COLLECT_SCORE,
+                            Game.TIME_TO_CHAIN,
+                            Obstacle.COLOUR,
+                            Colour.WHITE,
+                        );
+
                         this._allObstacles.delete(entity);
 
                         for (let i = 0; i < 5; i++) {
@@ -285,9 +317,29 @@ class Game {
 
             if (entity instanceof Collectable) {
                 if (entity.isCollidingWith(this._player) && !this._ended) {
+                    if (this._scoreText) {
+                        this._scoreMultiplier = Math.min(
+                            Game.MAX_COLLECT_CHAIN,
+                            this._scoreMultiplier + 1,
+                        );
+                    } else {
+                        this._scoreMultiplier = 0;
+                    }
+
+                    const scoreToAdd = Game.BASE_COLLECT_SCORE * (2 ** this._scoreMultiplier);
+
                     this._collectablesCollected++;
                     this._player.addCharge();
-                    this._increaseScore(10);
+                    this._increaseScore(scoreToAdd);
+                    this._scoreText = new ScoreText(
+                        this._player.position,
+                        `+${scoreToAdd}`,
+                        scoreToAdd,
+                        Game.MAX_COLLECT_SCORE,
+                        Game.TIME_TO_CHAIN,
+                        Collectable.COLOUR,
+                        Colour.WHITE,
+                    );
 
                     document.dispatchEvent(new CustomEvent<PowerChangeEventParams>(
                         EVENT_POWER_CHANGE,
@@ -367,6 +419,32 @@ class Game {
                 }
 
                 this._gameCtx.stroke();
+            }
+        }
+
+        if (this._scoreText && !this._ended) {
+            const pos = this._scoreText.getPosition();
+
+            this._gameCtx.font = this._scoreText.font;
+            this._gameCtx.strokeStyle = this._scoreText.outlineColour;
+            this._gameCtx.fillStyle = this._scoreText.fillColour;
+            this._gameCtx.lineWidth = 1;
+
+            const {width: textWidth} = this._gameCtx.measureText(this._scoreText.text);
+            this._gameCtx.strokeText(
+                this._scoreText.text,
+                pos.x - (textWidth / 2),
+                pos.y - (this._player.radius / 2),
+            );
+            this._gameCtx.fillText(
+                this._scoreText.text,
+                pos.x - (textWidth / 2),
+                pos.y - (this._player.radius / 2),
+            );
+
+            this._scoreText.nextFrame(deltaTime);
+            if (this._scoreText.shouldDespawn()) {
+                this._scoreText = null;
             }
         }
 
