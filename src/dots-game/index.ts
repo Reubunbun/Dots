@@ -91,7 +91,7 @@ const updateStatsMeter = () => {
 updateStatsMeter();
 
 // Click restart button
-restartBtns.forEach(el => el.addEventListener('click', () => {
+const cbRestart = () => {
     for (const modal of modals) {
         modal.style.opacity = '0';
     }
@@ -100,7 +100,19 @@ restartBtns.forEach(el => el.addEventListener('click', () => {
     modalBackdrop.innerHTML = '';
 
     game.restartGame();
-}));
+};
+restartBtns.forEach(el => el.addEventListener('click', cbRestart));
+window.addEventListener('keydown', e => {
+    if (
+        (
+            e.code === 'Space' ||
+            e.code === 'Enter'
+        ) &&
+        resultsInput !== document.activeElement
+    ) {
+        cbRestart();
+    }
+});
 
 // Click change stats button
 btnChangeStats.addEventListener('click', () => {
