@@ -26,7 +26,7 @@ functions:
           method: POST
           integration: lambda-proxy
           cors:
-            origin: "*"
+            origin: "https://d0ts.netlify.app/"
             headers:
               - accept
               - content-type
@@ -47,7 +47,7 @@ functions:
           method: GET
           integration: lambda-proxy
           cors:
-            origin: "*"
+            origin: "https://d0ts.netlify.app/"
             headers:
               - accept
               - content-type

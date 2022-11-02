@@ -50,7 +50,6 @@ class Game {
     private _allObstacles: Set<Obstacle>;
     private _allParticles: Set<Particle>;
     private _scoreText: ScoreText | null;
-    private _times: Array<number>;
     private _collectable: Collectable;
     private _player: Player;
     private _gameAnimationId: number;
@@ -137,7 +136,6 @@ class Game {
 
     startGame() : void
     {
-        this._times = [];
         this._ended = false;
         this._timeGameStart = Date.now();
         this._score = 0;
@@ -199,12 +197,6 @@ class Game {
             return;
         }
 
-        while (this._times.length > 0 && this._times[0] <= frameTime - 1000) {
-            this._times.shift();
-        }
-        this._times.push(frameTime);
-        const fps = this._times.length;
-
         const deltaTime = (frameTime - this._lastFrameTime) / 1000;
         this._lastFrameTime = frameTime;
 
@@ -225,10 +217,6 @@ class Game {
             Game.GAME_REF_HEIGHT - Game.BORDER_WIDTH,
         );
         this._gameCtx.strokeStyle = 'none';
-
-        this._gameCtx.fillStyle = 'white';
-        this._gameCtx.font = '48px serif';
-        this._gameCtx.fillText(`${fps}`, 10, 50);
 
         const allEntities: Array<Entity> = [
             this._collectable,
