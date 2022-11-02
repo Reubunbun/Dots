@@ -9,11 +9,11 @@ class Player extends Entity {
     private static readonly MIN_RADIUS = 10;
     private static readonly MAX_RADIUS = 50;
 
-    private static readonly MIN_SPEED = 90;
-    private static readonly MAX_SPEED = 190;
+    private static readonly MIN_SPEED = 85;
+    private static readonly MAX_SPEED = 180;
 
-    private static readonly MIN_POWERUP_TIME = 1.5;
-    private static readonly MAX_POWERUP_TIME = 3.5;
+    private static readonly MIN_POWERUP_TIME = 2;
+    private static readonly MAX_POWERUP_TIME = 3.8;
 
     private static readonly MIN_CHARGES_NEEDED = 4;
     private static readonly MAX_CHARGES_NEEDED = 10;
